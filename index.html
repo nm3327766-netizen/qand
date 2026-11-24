@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="uz-Cyrl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,interactive-widget=resizes-content">
+<meta name="theme-color" content="#0b1220">
+<title>Қанд назорати</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+:root{--bg:#0b1220;--card:#131c2e;--card2:#1a2540;--tx:#e8eefc;--mut:#93a1bd;--ac:#14b8a6;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444;--line:#24304d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding-bottom:84px}
+.wrap{max-width:680px;margin:0 auto;padding:14px 14px 0}
+header{display:flex;align-items:center;justify-content:space-between;margin:4px 0 14px}
+header h1{font-size:22px;margin:0}
+header .d{color:var(--mut);font-size:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.row{display:flex;gap:10px;align-items:center}
+.sp{flex:1;min-width:0}
+.mut{color:var(--mut);font-size:14px}
+.btn{border:0;border-radius:12px;padding:11px 14px;font-size:15px;font-weight:600;background:var(--card2);color:var(--tx);cursor:pointer;font-family:inherit}
+.btn.p{background:var(--ac);color:#04201d}
+.btn.ok{background:var(--ok);color:#052e12}
+.btn.bad{background:transparent;color:var(--bad);border:1px solid #4b2430}
+.btn.sm{padding:8px 11px;font-size:14px}
+.btn.full{width:100%}
+.btn:active{transform:scale(.97)}
+.btn:disabled{opacity:.3}
+nav{position:fixed;bottom:0;left:0;right:0;background:#0e1626;border-top:1px solid var(--line);display:flex;padding:6px 6px calc(6px + env(safe-area-inset-bottom));z-index:5}
+nav button{flex:1;background:none;border:0;color:var(--mut);font-size:12px;padding:6px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;cursor:pointer}
+nav button b{font-size:22px;font-weight:400}
+nav button.on{color:var(--ac)}
+.tag{display:inline-block;font-size:12px;padding:2px 8px;border-radius:99px;background:#22304f;color:var(--mut);margin:2px 4px 2px 0;white-space:nowrap}
+.tag.ok{background:#11351f;color:#86efac}.tag.bad{background:#3b1520;color:#fca5a5}.tag.warn{background:#3a2a0b;color:#fcd34d}
+.alert{background:#3a2a0b;border:1px solid #6b4d10;color:#fde68a;border-radius:14px;padding:12px;margin-bottom:12px;font-size:14px}
+.alert.i{background:#0f2e2b;border-color:#155e57;color:#99f6e4}
+.alert.bad{background:#3b1520;border-color:#6b2433;color:#fecaca}
+.empty{text-align:center;padding:30px 10px;color:var(--mut)}
+.empty b{font-size:48px;display:block}
+label{display:block;font-size:13px;color:var(--mut);margin:12px 0 5px}
+input,select,textarea{width:100%;background:#0e1626;border:1px solid var(--line);color:var(--tx);border-radius:11px;padding:11px;font-size:16px;font-family:inherit}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--ac);flex:none}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{padding:8px 11px;border-radius:99px;background:#0e1626;border:1px solid var(--line);color:var(--tx);font-size:14px;font-family:inherit;cursor:pointer}
+.chip.on{background:var(--ac);color:#04201d;border-color:var(--ac);font-weight:600}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:20;display:none;align-items:flex-end;justify-content:center}
+.modal.on{display:flex}
+.sheet{background:var(--card);width:100%;max-width:680px;max-height:92vh;overflow:auto;border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+.sheet h2{margin:0 0 4px;font-size:20px}
+.ring-alert{position:fixed;inset:0;background:rgba(4,10,20,.94);z-index:30;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+.ring-alert.on{display:flex}
+.ring-alert .pill{font-size:72px;animation:sh 1s infinite}
+@keyframes sh{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#e8eefc;color:#0b1220;padding:10px 16px;border-radius:12px;font-size:14px;z-index:40;opacity:0;transition:.3s;pointer-events:none;max-width:90%}
+.toast.on{opacity:1}
+.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.sw:last-child{border:0}
+h3{margin:0 0 8px;font-size:16px}
+h4{margin:16px 0 6px;font-size:14px}
+h4:first-of-type{margin-top:4px}
+/* Қанд назорати */
+.hero{cursor:pointer}
+.hrow{display:flex;align-items:baseline;gap:8px;margin-top:2px}
+.hv{font-size:56px;font-weight:700;line-height:1.05;letter-spacing:-1px}
+.hs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);text-align:center}
+.hs b{display:block;font-size:18px}.hs span{font-size:12px;color:var(--mut)}
+.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.qa button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 4px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--tx);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
+.qa button b{font-size:26px;font-weight:400;line-height:1}
+.qa button:active{transform:scale(.96)}
+.pend{display:flex;gap:8px;align-items:center;padding:10px;border-radius:12px;background:var(--card2);margin-top:8px}
+.pend.due{box-shadow:0 0 0 2px var(--warn) inset}
+.pend .pt{font-size:18px;font-weight:700;min-width:50px;font-variant-numeric:tabular-nums}
+.pend .pn{font-weight:600;font-size:15px;line-height:1.25}
+.lnk{background:none;border:0;color:var(--ac);font-size:14px;font-weight:600;padding:10px 0 2px;font-family:inherit;cursor:pointer;text-align:left}
+.vin{display:flex;align-items:baseline;gap:10px;background:#0e1626;border:1px solid var(--line);border-radius:14px;padding:2px 14px;margin-top:10px}
+.vin input{border:0;background:transparent;font-size:42px;font-weight:700;padding:6px 0;min-width:0;border-radius:0}
+.vin input:focus{outline:none}
+.vin span{color:var(--mut);white-space:nowrap}
+.vin.sm input{font-size:24px}
+.fst{min-height:26px;margin-top:8px}
+.ml{padding:12px;border-radius:14px;background:var(--card2);margin-top:10px;cursor:pointer}
+.ml .row{flex-wrap:wrap;gap:4px 8px}
+.cvs{display:flex;gap:6px;margin-top:8px}
+.cv{flex:1;text-align:center;background:#0e1626;border-radius:10px;padding:6px 2px;min-width:0}
+.cv span{display:block;font-size:11px;color:var(--mut);white-space:nowrap}
+.cv b{font-size:16px;font-variant-numeric:tabular-nums}
+.sd{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:4px;vertical-align:middle;background:var(--mut)}
+.sd.ok{background:var(--ok)}.sd.warn{background:var(--warn)}.sd.bad{background:var(--bad)}
+.it{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.it:last-child{border:0}
+.it .t{min-width:44px;font-weight:700;font-variant-numeric:tabular-nums;font-size:15px}
+.it .i{font-size:20px;width:26px;text-align:center;flex:none}
+.kc .kv{font-size:20px;font-weight:700}
+.pb{height:8px;border-radius:99px;background:#0e1626;overflow:hidden;margin-top:12px}
+.pb i{display:block;height:100%;background:var(--ac);border-radius:99px}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px;margin-bottom:10px}
+.seg button{flex:1;border:0;background:none;color:var(--mut);padding:9px;border-radius:9px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer}
+.seg button.on{background:var(--ac);color:#04201d}
+.pnav{display:flex;align-items:center;gap:10px;margin-bottom:12px;text-align:center}
+.pnav b{font-size:17px}
+.pnav .btn{min-width:46px;font-size:20px;padding:6px 12px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+@media(min-width:620px){.tiles{grid-template-columns:repeat(3,1fr)}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px}
+.tile .tl{font-size:13px;color:var(--mut);line-height:1.25}
+.tile .tv{font-size:26px;font-weight:700;margin:2px 0}
+.tile .tv small{font-size:13px;font-weight:400;color:var(--mut)}
+.td{font-size:13px}.td.good{color:#86efac}.td.bad{color:#fcd34d}.td.neu{color:var(--mut)}
+.dg{color:#86efac}.dbd{color:#fcd34d}
+.ins{display:flex;gap:10px;padding:8px 0 8px 10px;border-left:3px solid var(--line);margin:6px 0;font-size:14px}
+.ins b{font-size:18px;line-height:1.2}
+.ins.ok{border-color:var(--ok)}.ins.warn{border-color:var(--warn)}.ins.bad{border-color:var(--bad)}
+.chart{display:block;width:100%;height:auto;touch-action:manipulation}
+.ax{fill:var(--mut);font-size:11px;font-family:inherit}
+.lg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:12px;color:var(--mut);margin:2px 0 8px}
+.lg i{display:inline-block;vertical-align:middle;margin-right:6px}
+.lg i.line{width:16px;height:3px;border-radius:2px}
+.lg i.rect,.lg i.sq{width:10px;height:10px;border-radius:3px}
+.lg i.dot{width:9px;height:9px;border-radius:50%}
+.lg i.bk{width:14px;height:10px;border-radius:2px;background:rgba(34,197,94,.22)}
+.sq.ok{background:#11351f;border:1px solid #2f7a49}.sq.warn{background:#3a2a0b;border:1px solid #8a6514}.sq.bad{background:#3b1520;border:1px solid #8a2a3d}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:7px 4px;border-bottom:1px solid var(--line);text-align:right;font-variant-numeric:tabular-nums}
+td{white-space:nowrap}td:first-child{white-space:normal}
+th{color:var(--mut);font-weight:500;font-size:12px}
+th:first-child,td:first-child{text-align:left}
+tr:last-child td{border-bottom:0}
+table.tg input{padding:7px 6px;font-size:15px;text-align:center}
+table.tg td{padding:4px}
+table.tg td:first-child{white-space:nowrap;font-size:14px}
+table.tg td+td{width:84px}
+.heat{display:grid;grid-template-columns:repeat(7,1fr);gap:5px}
+.heat.hd{margin-bottom:5px}
+.heat.hd span{text-align:center;font-size:11px;color:var(--mut)}
+.heat div{aspect-ratio:1;border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:12px;background:#1a2540;color:var(--mut);cursor:pointer;line-height:1.15}
+.heat div b{font-size:13px;font-weight:600}
+.heat div small{font-size:10px}
+.heat div.ok{background:#11351f;color:#86efac}.heat div.warn{background:#3a2a0b;color:#fcd34d}.heat div.bad{background:#3b1520;color:#fca5a5}
+.heat div.fut{opacity:.35;cursor:default}
+.heat div.now{outline:2px solid var(--ac)}
+.heat .na{background:transparent;cursor:default}
+#tip{position:fixed;z-index:50;background:#e8eefc;color:#0b1220;border-radius:10px;padding:8px 10px;font-size:13px;line-height:1.35;white-space:pre-line;pointer-events:none;opacity:0;transition:opacity .15s;max-width:250px;box-shadow:0 6px 20px rgba(0,0,0,.45);left:0;top:0}
+#tip.on{opacity:1}
+.guide{margin:0;padding-left:20px;font-size:14px}
+.guide li{margin:7px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div><h1 id="ttl">Бугун</h1><div class="d" id="hdate"></div></div><button class="btn p sm" onclick="openReading()">＋ Қанд</button></header>
+  <main id="main"></main>
+</div>
+
+<nav>
+  <button data-t="today" class="on" onclick="tab('today')"><b>🩸</b>Бугун</button>
+  <button data-t="log" onclick="tab('log')"><b>📖</b>Журнал</button>
+  <button data-t="stats" onclick="tab('stats')"><b>📊</b>Таҳлил</button>
+  <button data-t="set" onclick="tab('set')"><b>⚙️</b>Созлама</button>
+</nav>
+
+<div class="modal" id="mdl" onclick="if(event.target===this)closeSheet()"><div class="sheet" id="sheet"></div></div>
+
+<div class="ring-alert" id="ra">
+  <div class="pill">🩸</div>
+  <h2 id="raT" style="font-size:24px;margin:10px 0 6px"></h2>
+  <div id="raD" class="mut" style="font-size:16px;margin-bottom:22px;max-width:360px"></div>
+  <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:340px">
+    <button class="btn p full" style="padding:16px;font-size:18px" onclick="raAct('enter')">✍️ Ҳозир киритаман</button>
+    <button class="btn full" onclick="raAct('snooze')">⏰ 10 дақиқадан кейин</button>
+    <button class="btn bad full" onclick="raAct('skip')">✖ Ўтказиб юбориш</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+<div id="tip"></div>
+<input type="file" id="imp" accept=".json,application/json" style="display:none" onchange="importData(this)">
+
+<script>
+/* ================= Маълумотлар ================= */
+const KEY='qand_nazorati_v1',DORI_KEY='dori_vaqti_v1';
+const MIN=6e4,HOUR=36e5,DAY=864e5;
+const WD=['Якшанба','Душанба','Сешанба','Чоршанба','Пайшанба','Жума','Шанба'];
+const WDS=['Як','Ду','Се','Чо','Па','Жу','Ша'];
+const MON=['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+const TAGS={
+  fast:{n:'Наҳорги',l:'Эрталаб наҳорда',i:'🌅'},
+  pre:{n:'Овқатдан олдин',l:'Овқатдан олдин',i:'🍽'},
+  p30:{n:'30 дақ кейин',l:'Овқатдан 30 дақиқа кейин',i:'⏱',m:30},
+  p60:{n:'1 соат кейин',l:'Овқатдан 1 соат кейин',i:'⏱',m:60},
+  p120:{n:'2 соат кейин',l:'Овқатдан 2 соат кейин',i:'⏱',m:120},
+  p180:{n:'3 соат кейин',l:'Овқатдан 3 соат кейин',i:'⏱',m:180},
+  spre:{n:'Спортдан олдин',l:'Спортдан олдин',i:'🏃'},
+  spost:{n:'Спортдан кейин',l:'Спортдан кейин',i:'🏃'},
+  bed:{n:'Ухлашдан олдин',l:'Ухлашдан олдин',i:'🌙'},
+  other:{n:'Бошқа',l:'Бошқа вақтда',i:'🩸'}
+};
+const TAG_GROUPS=[['fast','pre'],['p30','p60','p120','p180'],['spre','spost'],['bed','other']];
+const POST=['p30','p60','p120','p180'];
+const SLOT={30:'30 дақиқа',60:'1 соат',120:'2 соат',180:'3 соат'};
+const MEALT={b:{n:'Нонушта',i:'🍳'},l:{n:'Тушлик',i:'🍲'},d:{n:'Кечки овқат',i:'🍽'},s:{n:'Газак',i:'🍎'}};
+const SPORTS={walk:{n:'Юриш',i:'🚶',met:3.5},fwalk:{n:'Тез юриш',i:'👟',met:4.8},run:{n:'Югуриш',i:'🏃',met:9},bike:{n:'Велосипед',i:'🚴',met:7},swim:{n:'Сузиш',i:'🏊',met:7},gym:{n:'Куч машқлари',i:'🏋️',met:5},cardio:{n:'Кардио',i:'🫀',met:7},ball:{n:'Футбол',i:'⚽',met:7},yoga:{n:'Чўзилиш, йога',i:'🧘',met:2.5},other:{n:'Бошқа',i:'➕',met:4}};
+const INT={1:{n:'Енгил',k:.8},2:{n:'Ўртача',k:1},3:{n:'Юқори',k:1.25}};
+const C={blue:'#3987e5',orange:'#d95926',aqua:'#199e70',yellow:'#c98500',gray:'#5d6b88',grid:'#24304d',surf:'#131c2e',ok:'#22c55e',warn:'#f59e0b',bad:'#ef4444'};
+// Стандарт мақсадлар (ммоль/л): ADA тавсияси — овқатдан олдин 4.4–7.2, овқатдан кейин энг юқори <10.0
+const DEF_TG={fast:[4.4,7.2],pre:[4.4,7.2],p30:[3.9,10],p60:[3.9,10],p120:[3.9,10],p180:[3.9,7.8],spre:[3.9,10],spost:[3.9,10],bed:[4.4,10],other:[3.9,10]};
+
+function defSet(){return{unit:'mmol',src:'meter',remind:[30,60,180],tg:JSON.parse(JSON.stringify(DEF_TG)),low:3.9,vhigh:13.9,kcalGoal:0,weight:0,notif:true,sound:true,vibrate:true,fullAlert:true,dori:true,lastSport:'run',fastTime:'07:00',lastBackup:0}}
+function def(){return{v:1,readings:[],meals:[],sports:[],meds:[],tpl:[],medList:[],rem:[],settings:defSet()}}
+function norm(d){const b=def(),o={...b,...d};o.settings={...b.settings,...(d.settings||{})};o.settings.tg={...b.settings.tg,...((d.settings||{}).tg||{})};
+  ['readings','meals','sports','meds','tpl','medList','rem'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});
+  if(!Array.isArray(o.settings.remind))o.settings.remind=[30,60,180];
+  o.rem=o.rem.filter(r=>!r.done&&Date.now()-r.due<DAY);return o}
+function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.readings))return norm(d)}catch(e){}return def()}
+let S=load();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){toast('⚠️ Сақлашда хато!')}}
+const UI={tab:'today',sm:'week',sa:Date.now(),logF:'all',logDays:14};
+let F={};
+
+/* ================= Ёрдамчилар ================= */
+const $=s=>document.querySelector(s);
+const pad=n=>String(n).padStart(2,'0');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const sod=t=>{const d=new Date(t);d.setHours(0,0,0,0);return d.getTime()};
+const addD=(t,n)=>{const d=new Date(t);d.setDate(d.getDate()+n);return d.getTime()};
+const sow=t=>{const d=new Date(sod(t));d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()};
+const som=t=>{const d=new Date(t);return new Date(d.getFullYear(),d.getMonth(),1).getTime()};
+const addM=(t,n)=>{const d=new Date(som(t));d.setMonth(d.getMonth()+n);return d.getTime()};
+const dk=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const hm=t=>{const d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const dLabel=t=>{const d=new Date(t);return d.getDate()+' '+MON[d.getMonth()]};
+const dLong=t=>WD[new Date(t).getDay()]+', '+dLabel(t);
+const shortD=t=>{const d=new Date(t);return d.getDate()+'.'+pad(d.getMonth()+1)};
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+const toInp=t=>dk(t)+'T'+hm(t);
+let TS0=0;const tsIn=t=>{TS0=t;return toInp(t)},tsOut=()=>{const v=$('#f_ts').value;return v===toInp(TS0)?TS0:fromInp(v)};
+const fromInp=s=>{if(!s)return Date.now();const[a,b]=s.split('T');const[y,m,d]=a.split('-').map(Number);const[h,mi]=(b||'00:00').split(':').map(Number);return new Date(y,m-1,d,h||0,mi||0).getTime()};
+function ago(t){const m=Math.round((Date.now()-t)/MIN);if(m<1)return'ҳозиргина';if(m<60)return m+' дақ олдин';
+  if(sod(t)===sod(Date.now()))return Math.floor(m/60)+' соат '+(m%60?m%60+' дақ ':'')+'олдин';
+  if(sod(t)===addD(sod(Date.now()),-1))return'кеча '+hm(t);return dLabel(t)+' '+hm(t)}
+function dur(ms){const m=Math.round(Math.abs(ms)/MIN);if(m<60)return m+' дақ';const h=Math.floor(m/60),r=m%60;return h+' соат'+(r?' '+r+' дақ':'')}
+const isMg=()=>S.settings.unit==='mg';
+const U=()=>isMg()?'мг/дл':'ммоль/л';
+const toU=v=>isMg()?v*18:v;
+const fromU=v=>isMg()?v/18:v;
+const qv=v=>isMg()?Math.round(v*18):Math.round(v*10)/10;
+const fv=v=>v==null||isNaN(v)?'—':isMg()?String(Math.round(v*18)):(Math.round(v*10)/10).toFixed(1);
+const fvIn=v=>v==null?'':isMg()?String(Math.round(v*18)):String(Math.round(v*10)/10);
+const fd=d=>{if(d==null||isNaN(d))return'—';const x=qv(d);if(x===0)return'0';return(x>0?'+':'−')+(isMg()?Math.abs(x):Math.abs(x).toFixed(1))};
+const num=s=>{s=String(s??'').trim().replace(',','.').replace(/\s/g,'');return s===''?NaN:Number(s)};
+const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const sum=a=>a.reduce((x,y)=>x+(+y||0),0);
+const fk=k=>k==null||isNaN(k)?'—':Math.round(k).toLocaleString('ru-RU');
+const inR=(a,s,e)=>a.filter(x=>x.ts>=s&&x.ts<e);
+const okV=v=>isFinite(v)&&v>=1&&v<=35;
+
+/* ================= Ҳолат (меъёр/юқори/паст) ================= */
+function st(v,tag){const s=S.settings,t=s.tg[tag]||s.tg.other,x=qv(v);if(x<qv(s.low))return'low';if(x>=qv(s.vhigh))return'vhigh';if(x>qv(t[1]))return'high';if(x<qv(t[0]))return'lowish';return'ok'}
+const STL={ok:['✅','Меъёрда','ok'],high:['⬆️','Юқори','warn'],lowish:['⬇️','Мақсаддан паст','warn'],vhigh:['‼️','Жуда юқори','bad'],low:['⚠️','Паст','bad']};
+const stTag=s=>`<span class="tag ${STL[s][2]}">${STL[s][0]} ${STL[s][1]}</span>`;
+const stCol=s=>({ok:C.ok,warn:C.warn,bad:C.bad})[STL[s][2]];
+const sdot=(v,t)=>`<i class="sd ${STL[st(v,t)][2]}"></i>`;
+
+/* ================= Таҳлил ҳисоблари ================= */
+const getM=id=>S.meals.find(m=>m.id===id);
+const mealR=m=>S.readings.filter(r=>r.mealId===m.id);
+function curve(m){const rs=mealR(m).sort((a,b)=>a.ts-b.ts),g=t=>rs.find(r=>r.tag===t)||null;
+  const c={pre:g('pre')||g('fast'),p30:g('p30'),p60:g('p60'),p120:g('p120'),p180:g('p180')};
+  const ps=POST.map(t=>c[t]).filter(Boolean);
+  if(ps.length){const k=ps.reduce((a,b)=>b.v>a.v?b:a);c.peak=k.v;c.peakTag=k.tag}
+  if(c.pre&&c.peak!=null)c.rise=c.peak-c.pre.v;
+  if(c.pre&&c.p180){c.ret=c.p180.v-c.pre.v;c.back=c.ret<=1.0}
+  return c}
+function fastOf(t){const s=sod(t),e=addD(s,1);const r=S.readings.filter(x=>x.tag==='fast'&&x.ts>=s&&x.ts<e).sort((a,b)=>a.ts-b.ts)[0];return r?r.v:null}
+function peakOf(t){const s=sod(t),e=addD(s,1);const v=S.readings.filter(x=>POST.includes(x.tag)&&x.ts>=s&&x.ts<e).map(r=>r.v);return v.length?Math.max(...v):null}
+function stats(s,e){
+  const R=inR(S.readings,s,e),M=inR(S.meals,s,e),SP=inR(S.sports,s,e),vals=R.map(r=>r.v);
+  const by={},avgBy={};Object.keys(TAGS).forEach(k=>{by[k]=R.filter(r=>r.tag===k).map(r=>r.v);avgBy[k]=mean(by[k])});
+  const fast={};R.filter(r=>r.tag==='fast').sort((a,b)=>a.ts-b.ts).forEach(r=>{const k=dk(r.ts);if(!(k in fast))fast[k]=r.v});
+  const curves=M.map(m=>({m,c:curve(m)}));
+  const rises=curves.map(x=>x.c.rise).filter(x=>x!=null),peaks=curves.map(x=>x.c.peak).filter(x=>x!=null);
+  const sts=R.map(r=>st(r.v,r.tag));
+  const kIn=sum(M.map(m=>m.kcal||0)),kOut=sum(SP.map(x=>x.kcal||0)),kDays=new Set(M.filter(m=>m.kcal).map(m=>dk(m.ts))).size;
+  return{s,e,R,M,SP,n:R.length,avg:mean(vals),min:vals.length?Math.min(...vals):null,max:vals.length?Math.max(...vals):null,by,avgBy,
+    fast,fastAvg:mean(Object.values(fast)),fastN:Object.keys(fast).length,curves,riseAvg:mean(rises),peakAvg:mean(peaks),
+    tir:R.length?sts.filter(x=>x==='ok').length/R.length*100:null,low:sts.filter(x=>x==='low').length,vhigh:sts.filter(x=>x==='vhigh').length,
+    kIn,kOut,kDays,kInAvg:kDays?kIn/kDays:null,sDays:new Set(SP.map(x=>dk(x.ts))).size,sMin:sum(SP.map(x=>x.dur||0)),
+    mDays:new Set(R.map(r=>dk(r.ts))).size,unusualN:M.filter(m=>m.unusual).length}}
+function grp(cs){return{n:cs.length,rise:mean(cs.filter(c=>c.rise!=null).map(c=>c.rise)),peak:mean(cs.filter(c=>c.peak!=null).map(c=>c.peak)),p180:mean(cs.filter(c=>c.p180).map(c=>c.p180.v))}}
+function cmpUsual(A){const u=[],x=[];A.curves.forEach(({m,c})=>{if(c.peak==null)return;(m.unusual?x:u).push(c)});return{u:grp(u),x:grp(x)}}
+function sportDrops(A){return A.SP.map(s=>{const rs=S.readings.filter(r=>r.sportId===s.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost');return a&&b?{s,pre:a.v,post:b.v,d:b.v-a.v}:null}).filter(Boolean)}
+function postMealSport(A){const w=[],wo=[];A.curves.forEach(({m,c})=>{if(c.peak==null)return;(S.sports.some(s=>s.ts>m.ts&&s.ts<=m.ts+180*MIN)?w:wo).push(c)});return{w:grp(w),wo:grp(wo)}}
+function nextFast(A){const w=[],wo=[];for(let t=A.s;t<A.e;t=addD(t,1)){const v=fastOf(addD(t,1));if(v==null)continue;(S.sports.some(x=>x.ts>=t&&x.ts<addD(t,1))?w:wo).push(v)}return{w:mean(w),nw:w.length,wo:mean(wo),nwo:wo.length}}
+function foodRank(A){const g={};A.curves.forEach(({m,c})=>{if(c.rise==null)return;const n=String(m.name||'').trim();if(!n)return;const k=n.toLowerCase();(g[k]=g[k]||{name:n,r:[]}).r.push(c.rise)});
+  return Object.values(g).map(x=>({name:x.name,n:x.r.length,rise:mean(x.r)})).sort((a,b)=>b.rise-a.rise)}
+function corr(x,y){const n=x.length;if(n<3)return null;const mx=mean(x),my=mean(y);let a=0,b=0,c=0;for(let i=0;i<n;i++){const dx=x[i]-mx,dy=y[i]-my;a+=dx*dy;b+=dx*dx;c+=dy*dy}return b&&c?a/Math.sqrt(b*c):null}
+const eA1c=A=>A.n>=30&&A.mDays>=14?(A.avg+2.59)/1.59:null;
+
+/* «Дори вақти» иловасидаги «ичдим» белгилари (шу сайтда бўлса) */
+function doriData(){if(!S.settings.dori)return null;try{const d=JSON.parse(localStorage.getItem(DORI_KEY));if(d&&Array.isArray(d.meds)&&d.log&&typeof d.log==='object')return d}catch(e){}return null}
+function doriEvents(s,e){const d=doriData();if(!d)return[];const out=[],M={};d.meds.forEach(m=>{if(m&&m.id)M[m.id]=m});
+  for(const date in d.log){const p=date.split('-').map(Number);if(p.length!==3)continue;const day=new Date(p[0],p[1]-1,p[2]).getTime();if(day<sod(s)-DAY||day>=e)continue;
+    const L=d.log[date]||{};for(const key in L){const it=L[key];if(!it||it.s!=='taken')continue;const[id,tm]=key.split('|');const[h,mi]=String(tm||'0:0').split(':').map(Number);
+      const sch=new Date(p[0],p[1]-1,p[2],h||0,mi||0).getTime(),ts=it.t&&Math.abs(it.t-sch)<12*HOUR?it.t:sch;if(ts<s||ts>=e)continue;
+      const m=M[id];out.push({id:'d'+date+key,ts,name:m?m.name:'Дори',dose:m?m.dose||'':'',src:'dori'})}}
+  return out}
+function medEvents(s,e){const own=inR(S.meds,s,e).map(x=>({...x,src:'own'})),nm=x=>String(x||'').trim().toLowerCase(),res=[...own];
+  doriEvents(s,e).forEach(d=>{if(!own.some(o=>nm(o.name)===nm(d.name)&&Math.abs(o.ts-d.ts)<HOUR))res.push(d)});return res.sort((a,b)=>a.ts-b.ts)}
+function medCmp(A){if(!medEvents(addD(A.s,-60),A.e).length)return null;const w=[],wo=[];
+  for(let t=A.s;t<A.e&&t<=Date.now();t=addD(t,1)){const X=stats(t,addD(t,1));if(!X.n)continue;(medEvents(t,addD(t,1)).length?w:wo).push(X)}
+  const g=a=>({n:a.length,avg:mean(a.map(x=>x.avg)),fast:mean(a.filter(x=>x.fastAvg!=null).map(x=>x.fastAvg))});return{w:g(w),wo:g(wo)}}
+
+/* ================= Эслатмалар ================= */
+function allPend(now=Date.now()){const out=[];
+  for(const m of S.meals){if(m.noRem||now-m.ts>6*HOUR||m.ts>now+HOUR)continue;const have=mealR(m).map(r=>r.tag);
+    const maxHave=Math.max(0,...have.filter(t=>POST.includes(t)).map(t=>TAGS[t].m));
+    for(const min of S.settings.remind){const tag='p'+min;if(have.includes(tag)||(m.skip||[]).includes(tag)||min<maxHave)continue;
+      const due=m.ts+min*MIN;if(now>due+(min>=180?90:60)*MIN)continue;out.push({kind:'slot',key:m.id+'|'+tag,m,tag,min,due,overdue:now>=due})}}
+  for(const r of S.rem){if(r.done||now>r.due+60*MIN)continue;out.push({kind:'rem',key:'r|'+r.id,r,due:r.due,overdue:now>=r.due,title:r.title})}
+  return out.sort((a,b)=>a.due-b.due)}
+const pFired=p=>p.kind==='slot'?(p.m.fired||{})[p.tag]:p.kind==='rem'?p.r.fired:0;
+const pSnz=p=>p.kind==='slot'?(p.m.snz||{})[p.tag]:p.kind==='rem'?p.r.snz:0;
+function setFired(p,v){if(p.kind==='slot'){p.m.fired=p.m.fired||{};p.m.fired[p.tag]=v}else if(p.kind==='rem')p.r.fired=v}
+function setSnz(p,v){if(p.kind==='slot'){p.m.snz=p.m.snz||{};if(v)p.m.snz[p.tag]=v;else delete p.m.snz[p.tag]}else if(p.kind==='rem')p.r.snz=v||0}
+function pTitle(p){return p.kind==='slot'?`${MEALT[p.m.type].n}дан ${SLOT[p.min]} ўтди (${hm(p.m.ts)})`:p.title||'Қандни ўлчанг'}
+function cdTxt(due){const d=due-Date.now();return d>0?dur(d)+' қолди':(-d<2*MIN?'⏰ Вақти бўлди!':'⏰ '+dur(-d)+' ўтди')}
+let lastSig='';
+function tick(){const now=Date.now(),P=allPend(now),fire=[];
+  for(const p of P){if(!p.overdue)continue;const z=pSnz(p);if(z){if(now>=z){setSnz(p,0);fire.push(p)}continue}if(!pFired(p))fire.push(p)}
+  if(fire.length){fire.forEach(p=>setFired(p,now));save();fireAlert(fire[fire.length-1])}
+  document.querySelectorAll('[data-due]').forEach(el=>el.textContent=cdTxt(+el.dataset.due));
+  const sig=P.map(p=>p.key+(p.overdue?1:0)).join(',');if(sig!==lastSig){lastSig=sig;if(UI.tab==='today'&&!sheetOpen)render()}}
+function fireAlert(p){const t='🩸 Қанд ўлчаш вақти',b=p.kind==='slot'?pTitle(p)+'. Қандни ўлчаб, киритинг.':pTitle(p)+'.';
+  notify(t,b,p);if(S.settings.vibrate&&navigator.vibrate)try{navigator.vibrate([400,150,400,150,400])}catch(e){}beep();
+  if(document.visibilityState!=='visible')return;if(S.settings.fullAlert&&!sheetOpen)showRa(p,t,b);else toast('⏰ '+b)}
+let SWR=null,AC=null,raCur=null,raBeep=null;
+if('serviceWorker'in navigator){navigator.serviceWorker.register('sw.js').then(r=>SWR=r).catch(()=>{});
+  navigator.serviceWorker.addEventListener('message',e=>{if(e.data&&e.data.type==='qand-open')handleKey(e.data.k)})}
+async function askPerm(){if(!('Notification'in window)){toast('Бу браузер билдиришномани қўлламайди');return}
+  try{const p=await Notification.requestPermission();toast(p==='granted'?'✅ Билдиришнома ёқилди':'Рухсат берилмади')}catch(e){}render()}
+async function notify(title,body,p){if(!S.settings.notif||!('Notification'in window)||Notification.permission!=='granted')return;
+  const opt={body,tag:'qand-'+(p.key||'t'),renotify:true,icon:'icon-192.png',vibrate:[300,150,300],requireInteraction:true,data:{k:p.key||''}};
+  try{const reg=SWR||(navigator.serviceWorker&&await navigator.serviceWorker.getRegistration());if(reg){await reg.showNotification(title,opt);return}}catch(e){}
+  try{new Notification(title,opt)}catch(e){}}
+function unlockAudio(){try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume()}catch(e){}}
+function beep(){if(!S.settings.sound)return;try{unlockAudio();if(!AC)return;const t0=AC.currentTime;
+  [0,.32,.64].forEach((d,i)=>{const o=AC.createOscillator(),g=AC.createGain();o.type='sine';o.frequency.value=i===2?1175:880;
+    g.gain.setValueAtTime(.0001,t0+d);g.gain.exponentialRampToValueAtTime(.35,t0+d+.02);g.gain.exponentialRampToValueAtTime(.0001,t0+d+.28);
+    o.connect(g);g.connect(AC.destination);o.start(t0+d);o.stop(t0+d+.3)})}catch(e){}}
+function showRa(p,t,b){raCur=p;$('#raT').textContent=t;$('#raD').textContent=b;$('#ra').classList.add('on');clearInterval(raBeep);let n=0;
+  raBeep=setInterval(()=>{if(++n>3||!$('#ra').classList.contains('on')){clearInterval(raBeep);return}beep();if(S.settings.vibrate&&navigator.vibrate)try{navigator.vibrate([300,120,300])}catch(e){}},15000)}
+function raAct(a){$('#ra').classList.remove('on');clearInterval(raBeep);const p=raCur;raCur=null;if(!p)return;
+  if(a==='enter')openFor(p);else if(a==='snooze'){if(p.kind!=='test'){setSnz(p,Date.now()+10*MIN);save()}toast('⏰ 10 дақиқадан кейин эслатаман');render()}else if(a==='skip')skipP(p)}
+function openFor(p){if(p.kind==='slot')openReading(null,{tag:p.tag,mealId:p.m.id});else if(p.kind==='rem')openReading(null,{remId:p.r.id,tag:'other'});else openReading()}
+function skipP(p){if(p.kind==='slot'){p.m.skip=[...(p.m.skip||[]),p.tag]}else if(p.kind==='rem')p.r.done=true;else return;save();render();toast('Ўтказиб юборилди')}
+const findP=k=>allPend().find(x=>x.key===k);
+function enterP(k){const p=findP(k);if(p)openFor(p)}
+function skipK(k){const p=findP(k);if(p)skipP(p)}
+function handleKey(k){const p=k&&findP(k);if(p)openFor(p);else openReading()}
+function addRecheck(min){S.rem.push({id:uid(),due:Date.now()+min*MIN,title:'Қандни қайта ўлчанг',fired:0,done:false});save();render();toast('⏰ '+dur(min*MIN)+'дан кейин эслатаман')}
+function testAlert(){unlockAudio();fireAlert({kind:'test',key:'test',title:'Синов: эслатма шундай кўринади'})}
+
+/* ================= Графиклар ================= */
+function CW(){const w=($('.wrap')||document.body).clientWidth;return Math.max(260,Math.min(700,w-58))}
+function ticks(lo,hi,mx=6){if(hi-lo<1e-9)hi=lo+1;let mag=Math.pow(10,Math.floor(Math.log10((hi-lo)/mx))),step=mag;
+  for(const m of[1,2,5,10,20]){step=m*mag;if(Math.ceil(hi/step-1e-9)-Math.floor(lo/step+1e-9)<=mx)break}
+  const a=Math.floor(lo/step+1e-9)*step,b=Math.ceil(hi/step-1e-9)*step,t=[];
+  for(let v=a;v<=b+step*1e-6;v+=step)t.push(Math.round(v*1e6)/1e6);return{t,lo:a,hi:b}}
+const fa=v=>Number.isInteger(v)?String(v):v.toFixed(1);
+const bandU=()=>[toU(S.settings.low),toU(S.settings.tg.p60[1])];
+const nodata=()=>'<div class="mut" style="padding:18px 0;text-align:center">Маълумот етарли эмас</div>';
+function legend(items,kind='line',band=true){return`<div class="lg">${items.map(([c,n])=>`<span><i class="${kind}" style="background:${c}"></i>${n}</span>`).join('')}${band?'<span><i class="bk"></i>мақсад оралиғи</span>':''}</div>`}
+function lineChart(o){const W=CW(),mk=o.marks&&o.marks.length,H=(o.h||210)+(mk?16:0),P={l:34,r:12,t:12,b:mk?62:28},pw=W-P.l-P.r,ph=H-P.t-P.b;
+  const ys=[];o.series.forEach(s=>s.pts.forEach(p=>{if(p&&p.y!=null)ys.push(p.y)}));if(!ys.length)return nodata();if(o.band)ys.push(...o.band);
+  const lo=Math.min(...ys),hi=Math.max(...ys),pd=(hi-lo)*.04||1,T=ticks(lo-pd,hi+pd,6);
+  const X=v=>P.l+(v-o.x.min)/((o.x.max-o.x.min)||1)*pw,Y=v=>P.t+ph-(v-T.lo)/((T.hi-T.lo)||1)*ph;let g='';
+  if(o.band){const y1=Y(Math.min(o.band[1],T.hi)),y0=Y(Math.max(o.band[0],T.lo));g+=`<rect x="${P.l}" y="${y1.toFixed(1)}" width="${pw}" height="${Math.max(0,y0-y1).toFixed(1)}" fill="${C.ok}" opacity=".1"/>`}
+  T.t.forEach(t=>{const y=Y(t).toFixed(1);g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="${C.grid}" stroke-width="1"/><text x="${P.l-6}" y="${(+y+4).toFixed(1)}" text-anchor="end" class="ax">${fa(t)}</text>`});
+  o.x.ticks.forEach(t=>{const x=X(t.v),hw=String(t.l).length*3.2,an=x-hw<2?'start':x+hw>W-2?'end':'middle',xx=an==='start'?Math.max(2,x-hw):an==='end'?Math.min(W-2,x+hw):x;
+    g+=`<text x="${xx.toFixed(1)}" y="${P.t+ph+17}" text-anchor="${an}" class="ax">${t.l}</text>`});
+  o.series.forEach(s=>{if(s.noLine)return;let d='',pen=false;s.pts.forEach(p=>{if(!p||p.y==null){if(!s.connectGaps)pen=false;return}d+=(pen?'L':'M')+X(p.x).toFixed(1)+' '+Y(p.y).toFixed(1);pen=true});
+    if(d)g+=`<path d="${d}" fill="none" stroke="${s.color}" stroke-width="${s.w||2}" stroke-linejoin="round" stroke-linecap="round"/>`});
+  o.series.forEach(s=>{if(s.noDots)return;s.pts.forEach(p=>{if(!p||p.y==null)return;g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="${s.r||4.5}" fill="${p.c||s.color}" fill-opacity="${s.dop||1}" stroke="${C.surf}" stroke-width="2"/>`})});
+  const mrk=(o.marks||[]).map(m=>({...m,px:Math.min(W-9,Math.max(P.l,X(m.x)))})).sort((a,b)=>a.px-b.px),last=[-99,-99];
+  mrk.forEach(m=>{m.row=m.px-last[0]>=18?0:m.px-last[1]>=18?1:0;last[m.row]=m.px;g+=`<text x="${m.px.toFixed(1)}" y="${P.t+ph+36+m.row*17}" text-anchor="middle" font-size="14">${m.t}</text>`});
+  o.series.forEach(s=>s.pts.forEach(p=>{if(!p||p.y==null||!p.tip)return;g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="14" fill="transparent" data-tip="${esc(p.tip)}"/>`}));
+  mrk.forEach(m=>{if(m.tip)g+=`<rect x="${(m.px-11).toFixed(1)}" y="${P.t+ph+22+m.row*17}" width="22" height="18" fill="transparent" data-tip="${esc(m.tip)}"/>`});
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`}
+function barChart(o){const W=CW(),H=o.h||170,P={l:40,r:8,t:12,b:24},pw=W-P.l-P.r,ph=H-P.t-P.b,n=o.cats.length,k=o.colors.length;
+  const mx=Math.max(1,...o.cats.flatMap(c=>c.v.map(v=>v||0)),o.ref||0),T=ticks(0,mx,4),Y=v=>P.t+ph-(v/T.hi)*ph;
+  const band=pw/n,bw=Math.max(2,Math.min(24,(band*.72-(k-1)*2)/k)),gw=k*bw+(k-1)*2,every=Math.ceil(n/10);let g='';
+  T.t.forEach(t=>{const y=Y(t).toFixed(1);g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="${C.grid}"/><text x="${P.l-6}" y="${(+y+4).toFixed(1)}" text-anchor="end" class="ax">${t}</text>`});
+  o.cats.forEach((c,i)=>{const x0=P.l+i*band+(band-gw)/2;c.v.forEach((v,j)=>{if(!v)return;const x=x0+j*(bw+2),y=Y(v),h=P.t+ph-y,r=Math.min(4,bw/2,h);
+      g+=`<path d="M${x.toFixed(1)} ${(y+h).toFixed(1)}V${(y+r).toFixed(1)}Q${x.toFixed(1)} ${y.toFixed(1)} ${(x+r).toFixed(1)} ${y.toFixed(1)}H${(x+bw-r).toFixed(1)}Q${(x+bw).toFixed(1)} ${y.toFixed(1)} ${(x+bw).toFixed(1)} ${(y+r).toFixed(1)}V${(y+h).toFixed(1)}Z" fill="${o.colors[j]}"/>`});
+    if(i%every===0)g+=`<text x="${(P.l+i*band+band/2).toFixed(1)}" y="${P.t+ph+16}" text-anchor="middle" class="ax">${c.l}</text>`});
+  if(o.ref){const y=Y(o.ref).toFixed(1);g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="#93a1bd" stroke-width="1" opacity=".8"/><text x="${W-P.r}" y="${(+y-4).toFixed(1)}" text-anchor="end" class="ax">мақсад</text>`}
+  g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${P.t+ph}" y2="${P.t+ph}" stroke="#3a4766"/>`;
+  o.cats.forEach((c,i)=>{g+=`<rect x="${(P.l+i*band).toFixed(1)}" y="${P.t}" width="${band.toFixed(1)}" height="${ph}" fill="transparent" data-tip="${esc(c.tip)}"/>`});
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`}
+function scatter(pts){const W=CW(),H=210,P={l:38,r:14,t:12,b:34},pw=W-P.l-P.r,ph=H-P.t-P.b;
+  const xs=pts.map(p=>p.x),ys=pts.map(p=>p.y),TX=ticks(Math.min(...xs)*.9,Math.max(...xs)*1.05,5),TY=ticks(Math.min(0,...ys),Math.max(...ys,1)*1.08,5);
+  const X=v=>P.l+(v-TX.lo)/((TX.hi-TX.lo)||1)*pw,Y=v=>P.t+ph-(v-TY.lo)/((TY.hi-TY.lo)||1)*ph;let g='';
+  TY.t.forEach(t=>{const y=Y(t).toFixed(1);g+=`<line x1="${P.l}" x2="${W-P.r}" y1="${y}" y2="${y}" stroke="${t===0?'#3a4766':C.grid}"/><text x="${P.l-6}" y="${(+y+4).toFixed(1)}" text-anchor="end" class="ax">${fa(t)}</text>`});
+  TX.t.forEach(t=>{g+=`<text x="${X(t).toFixed(1)}" y="${P.t+ph+16}" text-anchor="middle" class="ax">${t}</text>`});
+  g+=`<text x="${W-P.r}" y="${H-2}" text-anchor="end" class="ax">ккал →</text>`;
+  pts.forEach(p=>{g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="5" fill="${p.u?C.orange:C.blue}" stroke="${C.surf}" stroke-width="2"/>`});
+  pts.forEach(p=>{g+=`<circle cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="14" fill="transparent" data-tip="${esc(p.tip)}"/>`});
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img">${g}</svg>`}
+function dayChart(t0,t1){const R=inR(S.readings,t0,t1).sort((a,b)=>a.ts-b.ts);if(!R.length)return nodata();
+  const M=inR(S.meals,t0,t1),SP=inR(S.sports,t0,t1),MD=medEvents(t0,t1),ts=[...R,...M,...SP].map(x=>x.ts);
+  let a=Math.min(...ts)-HOUR,b=Math.max(...ts)+HOUR;if(b-a<6*HOUR){const c=(a+b)/2;a=c-3*HOUR;b=c+3*HOUR}
+  const fl=t=>{const d=new Date(t);d.setMinutes(0,0,0);return d.getTime()};a=fl(Math.max(t0,a));b=Math.min(t1,fl(b)+HOUR);
+  const step=(b-a)/HOUR>14?3:2,tk=[];for(let t=a;t<=b;t+=HOUR){const h=new Date(t).getHours();if(h%step===0)tk.push({v:t,l:pad(h)+':00'})}
+  const pts=R.map(r=>{const s=st(r.v,r.tag);return{x:r.ts,y:toU(r.v),c:stCol(s),tip:`${fv(r.v)} ${U()} · ${STL[s][1]}\n${TAGS[r.tag].l}\n${hm(r.ts)}`}});
+  const SPn=x=>SPORTS[x.type]||SPORTS.other;
+  const marks=[...M.map(m=>({x:m.ts,t:MEALT[m.type].i,tip:`${MEALT[m.type].n} ${hm(m.ts)}${m.name?'\n'+m.name:''}${m.kcal?'\n'+fk(m.kcal)+' ккал':''}${m.unusual?'\n⚡ Ноодатий':''}`})),
+    ...SP.map(x=>({x:x.ts,t:SPn(x).i,tip:`${SPn(x).n} ${hm(x.ts)}${x.dur?' · '+x.dur+' дақ':''}${x.kcal?'\n'+fk(x.kcal)+' ккал сарф':''}`})),
+    ...MD.map(x=>({x:x.ts,t:'💊',tip:`${x.name} ${x.dose||''}\n${hm(x.ts)}`}))].filter(m=>m.x>=a&&m.x<=b);
+  return`<div class="lg"><span><i class="bk"></i>мақсад оралиғи</span><span><i class="dot" style="background:${C.ok}"></i>меъёрда</span><span><i class="dot" style="background:${C.warn}"></i>мақсаддан ташқари</span><span><i class="dot" style="background:${C.bad}"></i>хавфли даража</span></div>`
+    +lineChart({x:{min:a,max:b,ticks:tk},band:bandU(),series:[{color:C.blue,pts}],marks,h:236})}
+
+/* ================= Умумий бўлаклар ================= */
+const cell=(lab,r)=>`<div class="cv"><span>${lab}</span><b>${r?fv(r.v):'—'}</b>${r?sdot(r.v,r.tag):''}</div>`;
+function mealRow(m){const c=curve(m),after=S.sports.find(s=>s.ts>m.ts&&s.ts<=m.ts+180*MIN),info=[];
+  if(c.rise!=null)info.push('Кўтарилиш: <b style="color:var(--tx)">'+fd(c.rise)+'</b>');
+  if(c.back!=null)info.push(c.back?'✅ 3 соатда олдинги даражага қайтди':'⚠️ 3 соатда қайтмади ('+fd(c.ret)+')');
+  if(after)info.push('🏃 овқатдан '+dur(after.ts-m.ts)+' кейин спорт');
+  const show120=c.p120||S.settings.remind.includes(120);
+  return`<div class="ml" onclick="openMeal('${m.id}')"><div class="row"><b>${MEALT[m.type].i} ${MEALT[m.type].n} · ${hm(m.ts)}</b>${m.unusual?'<span class="tag warn">⚡ Ноодатий</span>':'<span class="tag">Одатий</span>'}</div>
+  ${m.name||m.kcal?`<div class="mut">${[esc(m.name||''),m.kcal?fk(m.kcal)+' ккал':'',m.carbs?m.carbs+' г углевод':''].filter(Boolean).join(' · ')}</div>`:''}
+  <div class="cvs">${cell('Олдин',c.pre)}${cell('30 дақ',c.p30)}${cell('1 соат',c.p60)}${show120?cell('2 соат',c.p120):''}${cell('3 соат',c.p180)}</div>
+  ${info.length?`<div class="mut" style="margin-top:6px;font-size:13px">${info.join(' · ')}</div>`:''}</div>`}
+function sportRow(x){const rs=S.readings.filter(r=>r.sportId===x.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost'),sp=SPORTS[x.type]||SPORTS.other;
+  return`<div class="ml" onclick="openSport('${x.id}')"><div class="row"><b>${sp.i} ${sp.n} · ${hm(x.ts)}</b><span class="sp"></span><span class="mut">${[x.dur?x.dur+' дақ':'',x.kcal?fk(x.kcal)+' ккал':''].filter(Boolean).join(' · ')}</span></div>
+  ${a||b?`<div class="cvs">${cell('Олдин',a)}${cell('Кейин',b)}${a&&b?`<div class="cv"><span>Фарқи</span><b>${fd(b.v-a.v)}</b></div>`:''}</div>`:''}${x.note?`<div class="mut">${esc(x.note)}</div>`:''}</div>`}
+function entries(s,e){const L=[];inR(S.readings,s,e).forEach(o=>L.push({ts:o.ts,k:'r',o}));inR(S.meals,s,e).forEach(o=>L.push({ts:o.ts,k:'m',o}));
+  inR(S.sports,s,e).forEach(o=>L.push({ts:o.ts,k:'s',o}));medEvents(s,e).forEach(o=>L.push({ts:o.ts,k:'d',o}));return L.sort((a,b)=>a.ts-b.ts)}
+function itemHtml(it){const o=it.o;
+  if(it.k==='r'){const s=st(o.v,o.tag);return`<div class="it" onclick="openReading('${o.id}')"><span class="t">${hm(o.ts)}</span><span class="i">🩸</span><div class="sp"><b>${fv(o.v)}</b> <span class="mut">${U()} · ${TAGS[o.tag].n}${o.src==='cgm'?' · сенсор':''}</span>${o.note?`<div class="mut">${esc(o.note)}</div>`:''}</div>${stTag(s)}</div>`}
+  if(it.k==='m')return`<div class="it" onclick="openMeal('${o.id}')"><span class="t">${hm(o.ts)}</span><span class="i">${MEALT[o.type].i}</span><div class="sp"><b>${MEALT[o.type].n}</b> <span class="mut">${esc(o.name||'')}</span>${o.unusual?' <span class="tag warn">⚡ Ноодатий</span>':''}</div><span class="mut">${o.kcal?fk(o.kcal)+' ккал':''}</span></div>`;
+  if(it.k==='s'){const sp=SPORTS[o.type]||SPORTS.other;return`<div class="it" onclick="openSport('${o.id}')"><span class="t">${hm(o.ts)}</span><span class="i">${sp.i}</span><div class="sp"><b>${sp.n}</b> <span class="mut">${o.dur?o.dur+' дақ':''}</span></div><span class="mut">${o.kcal?'−'+fk(o.kcal)+' ккал':''}</span></div>`}
+  return`<div class="it" ${o.src==='own'?`onclick="openMed('${o.id}')"`:'style="cursor:default"'}><span class="t">${hm(o.ts)}</span><span class="i">💊</span><div class="sp"><b>${esc(o.name)}</b> <span class="mut">${esc(o.dose||'')}${o.src==='dori'?' · «Дори вақти»дан':''}</span></div></div>`}
+const kc=(l,v)=>`<div><div class="mut" style="font-size:12px">${l}</div><div class="kv">${v}</div></div>`;
+function kcalCard(A){if(!A.M.length&&!A.SP.length)return'';const goal=S.settings.kcalGoal,carbs=sum(A.M.map(m=>m.carbs||0));
+  let h=`<div class="card"><h3>🔥 Калория (ккал)</h3><div class="g3 kc">${kc('Истеъмол',fk(A.kIn))}${kc('Спорт сарфи',fk(A.kOut))}${kc('Фарқи',fk(A.kIn-A.kOut))}</div>`;
+  if(goal)h+=`<div class="pb"><i style="width:${Math.min(100,A.kIn/goal*100)}%;${A.kIn>goal?'background:var(--warn)':''}"></i></div><div class="mut" style="font-size:13px;margin-top:4px">Кунлик мақсад: ${fk(goal)} ккал · ${A.kIn>goal?'мақсаддан '+fk(A.kIn-goal)+' ортиқ':fk(goal-A.kIn)+' қолди'}</div>`;
+  if(carbs)h+=`<div class="mut" style="font-size:13px;margin-top:4px">Углевод: ${carbs} г</div>`;return h+'</div>'}
+function warnCard(r){const s=st(r.v,r.tag);
+  if(s==='low')return`<div class="alert bad">⚠️ <b>Қанд паст: ${fv(r.v)} ${U()}</b> (${hm(r.ts)})<br>Тез сўриладиган углевод истеъмол қилинг (масалан, ярим стакан мева шарбати ёки 3–4 бўлак қанд) ва 15 дақиқадан кейин қайта ўлчанг. Тез-тез такрорланса, шифокорингизга айтинг.<div style="margin-top:8px"><button class="btn sm" onclick="addRecheck(15)">⏰ 15 дақдан кейин эслат</button></div></div>`;
+  if(s==='vhigh')return`<div class="alert bad">‼️ <b>Қанд жуда юқори: ${fv(r.v)} ${U()}</b> (${hm(r.ts)})<br>Сув ичинг ва 1–2 соатдан кейин қайта ўлчанг. Юқори қанд такрорланса ёки ўзингизни ёмон ҳис қилсангиз, шифокорга мурожаат қилинг.<div style="margin-top:8px"><button class="btn sm" onclick="addRecheck(90)">⏰ 1.5 соатдан кейин эслат</button></div></div>`;
+  return''}
+
+/* ================= Бугун ================= */
+function vToday(){const now=Date.now(),t0=sod(now),t1=addD(t0,1),A=stats(t0,t1),last=S.readings.reduce((a,b)=>!a||b.ts>=a.ts?b:a,null);let h='';
+  if(last&&now-last.ts<3*HOUR)h+=warnCard(last);
+  if(S.settings.notif&&'Notification'in window&&Notification.permission==='default'&&S.meals.length)h+=`<div class="alert i">🔔 Овқатдан кейин ўлчаш вақтини эслатиб туриш учун билдиришномага рухсат беринг.<div style="margin-top:8px"><button class="btn p sm" onclick="askPerm()">Рухсат бериш</button></div></div>`;
+  if(S.readings.length>=30&&now-(S.settings.lastBackup||0)>30*DAY)h+=`<div class="alert i">💾 Маълумотлар захирасини олиб қўйинг — телефон алмашса ёки браузер тозаланса йўқолмайди.<div style="margin-top:8px"><button class="btn sm" onclick="exportData()">⬇️ Захирани сақлаш</button></div></div>`;
+  if(!last)h+=`<div class="card empty"><b>🩸</b>Ҳали ўлчов йўқ.<br><br><button class="btn p" onclick="openReading()">＋ Биринчи ўлчовни киритиш</button></div>`;
+  else{const s=st(last.v,last.tag),m=last.mealId&&getM(last.mealId);
+    h+=`<div class="card hero" onclick="openReading('${last.id}')"><div class="mut">Сўнгги ўлчов · ${ago(last.ts)}</div><div class="hrow"><span class="hv">${fv(last.v)}</span><span class="mut">${U()}</span></div>
+    <div style="margin-top:8px">${stTag(s)}<span class="tag">${TAGS[last.tag].i} ${TAGS[last.tag].l}</span>${m?`<span class="tag">${MEALT[m.type].i} ${MEALT[m.type].n} ${hm(m.ts)}</span>`:''}</div>
+    ${A.n?`<div class="hs"><div><b>${fv(A.avg)}</b><span>бугун ўртача</span></div><div><b>${A.n}</b><span>ўлчов</span></div><div><b>${A.tir!=null?Math.round(A.tir)+'%':'—'}</b><span>мақсадда</span></div></div>`:''}</div>`}
+  const P=allPend(now);if(P.length)h+=pendCard(P);
+  h+=`<div class="qa"><button onclick="openReading()"><b>🩸</b>Қанд</button><button onclick="openMeal()"><b>🍽</b>Овқат</button><button onclick="openSport()"><b>🏃</b>Спорт</button><button onclick="openMed()"><b>💊</b>Дори</button></div>`;
+  if(!S.readings.length&&!S.meals.length)h+=`<div class="card"><h3>👋 Қандай ишлатилади?</h3><ol class="guide">
+    <li><b>Эрталаб наҳорда</b> қандни ўлчаб, «🩸 Қанд» тугмаси орқали киритинг.</li>
+    <li><b>Овқатланаётганда</b> «🍽 Овқат»ни босинг: нима еганингиз, калорияси, одатий ёки ноодатий эканини белгиланг. Илова 30 дақиқа, 1 соат ва 3 соатдан кейин ўлчашни эслатади.</li>
+    <li><b>Спорт</b> қилсангиз, давомийлиги ва сарфланган калорияни киритинг (фитнес браслет ёки соатингиздаги рақам).</li>
+    <li><b>«📊 Таҳлил»</b> бўлимида кунлик, ҳафталик ва ойлик натижаларни, ўзгаришлар ва хулосаларни кўрасиз.</li></ol></div>`;
+  h+=kcalCard(A);
+  if(A.n)h+=`<div class="card"><h3>📈 Бугунги қанд</h3>${dayChart(t0,t1)}</div>`;
+  if(A.M.length)h+=`<div class="card"><h3>🍽 Овқатлар таъсири</h3>${A.M.slice().sort((a,b)=>a.ts-b.ts).map(mealRow).join('')}</div>`;
+  if(A.SP.length)h+=`<div class="card"><h3>🏃 Спорт</h3>${A.SP.slice().sort((a,b)=>a.ts-b.ts).map(sportRow).join('')}</div>`;
+  const L=entries(t0,t1);if(L.length)h+=`<div class="card"><h3>📝 Бугунги ёзувлар</h3>${L.map(itemHtml).join('')}</div>`;
+  return h}
+function pendCard(P){const g={};P.forEach(p=>{const k=p.kind==='slot'?p.m.id:'rem';(g[k]=g[k]||[]).push(p)});let h='<div class="card"><h3>⏰ Кейинги ўлчовлар</h3>';
+  for(const k in g){const ps=g[k];if(k!=='rem'){const m=ps[0].m;h+=`<div class="mut" style="margin:8px 0 0">${MEALT[m.type].i} ${MEALT[m.type].n} · ${hm(m.ts)}${m.name?' · '+esc(m.name):''}</div>`}
+    ps.forEach(p=>{h+=`<div class="pend${p.overdue?' due':''}"><div class="pt">${hm(p.due)}</div><div class="sp"><div class="pn">${p.kind==='slot'?SLOT[p.min]+' кейин':esc(p.title)}</div><div class="mut" data-due="${p.due}">${cdTxt(p.due)}</div></div><button class="btn ${p.overdue?'p ':''}sm" onclick="enterP('${p.key}')">${p.overdue?'✍️ Киритиш':'✍️'}</button><button class="btn sm" onclick="skipK('${p.key}')" aria-label="Ўтказиб юбориш">✖</button></div>`});
+    if(k!=='rem'&&ps.some(p=>p.due>Date.now()+MIN))h+=`<button class="lnk" onclick="icsMeal('${k}')">📅 Телефон календарига қўшиш — илова ёпиқ бўлса ҳам эслатади</button>`}
+  return h+'</div>'}
+
+/* ================= Журнал ================= */
+function vLog(){const f=UI.logF;let h=`<div class="chips" style="margin-bottom:12px">${[['all','Ҳаммаси'],['r','🩸 Қанд'],['m','🍽 Овқат'],['s','🏃 Спорт'],['d','💊 Дори']].map(([k,n])=>`<button class="chip${f===k?' on':''}" onclick="UI.logF='${k}';UI.logDays=14;render()">${n}</button>`).join('')}</div>`;
+  const first=Math.min(Date.now(),...[...S.readings,...S.meals,...S.sports,...S.meds].map(x=>x.ts));
+  const all=entries(sod(first)-60*DAY,addD(sod(Date.now()),2)).filter(it=>f==='all'||it.k===f);
+  if(!all.length)return h+'<div class="card empty"><b>📖</b>Ҳали ёзув йўқ.</div>';
+  const by={};all.forEach(it=>{(by[dk(it.ts)]=by[dk(it.ts)]||[]).push(it)});const keys=Object.keys(by).sort().reverse();
+  keys.slice(0,UI.logDays).forEach(k=>{const items=by[k],s0=sod(items[0].ts),A=stats(s0,addD(s0,1));
+    const sm=[A.n?'🩸 '+A.n+' та · ўртача '+fv(A.avg):'',A.kIn?'🔥 '+fk(A.kIn)+' ккал':'',A.sMin?'🏃 '+A.sMin+' дақ':''].filter(Boolean).join(' · ');
+    h+=`<div class="card"><div class="row" style="margin-bottom:2px"><div class="sp"><h3 style="margin:0">${dLong(s0)}</h3>${sm?`<div class="mut" style="font-size:13px">${sm}</div>`:''}</div><button class="btn sm" onclick="goDay(${s0})" aria-label="Кун таҳлили">📊</button></div>${items.map(itemHtml).join('')}</div>`});
+  if(keys.length>UI.logDays)h+=`<button class="btn full" onclick="UI.logDays+=14;render()">Яна кўрсатиш</button>`;
+  return h}
+
+/* ================= Таҳлил ================= */
+function rangeOf(mode,a){if(mode==='day'){const s=sod(a);return[s,addD(s,1)]}if(mode==='week'){const s=sow(a);return[s,addD(s,7)]}const s=som(a);return[s,addM(s,1)]}
+function prevOf(mode,s){return rangeOf(mode,mode==='month'?addM(s,-1):addD(s,mode==='day'?-1:-7))}
+function pLabel(mode,s,e){if(mode==='day')return dLong(s);if(mode==='week'){const a=new Date(s),b=new Date(addD(e,-1));return a.getMonth()===b.getMonth()?a.getDate()+'–'+b.getDate()+' '+MON[b.getMonth()]:dLabel(s)+' – '+dLabel(addD(e,-1))}
+  const d=new Date(s);return cap(MON[d.getMonth()])+' '+d.getFullYear()}
+function shiftP(n){UI.sa=UI.sm==='month'?addM(som(UI.sa),n):addD(UI.sa,n*(UI.sm==='day'?1:7));render()}
+function goDay(t){UI.tab='stats';UI.sm='day';UI.sa=t;render();scrollTo(0,0)}
+function vStats(){const[s,e]=rangeOf(UI.sm,UI.sa),[ps,pe]=prevOf(UI.sm,s),cur=s<=Date.now()&&Date.now()<e;
+  let h=`<div class="seg">${[['day','Кунлик'],['week','Ҳафталик'],['month','Ойлик']].map(([k,n])=>`<button class="${UI.sm===k?'on':''}" onclick="UI.sm='${k}';render()">${n}</button>`).join('')}</div>
+  <div class="pnav"><button class="btn" onclick="shiftP(-1)" aria-label="Олдинги">‹</button><div class="sp"><b>${pLabel(UI.sm,s,e)}</b>${cur?'':`<div><button class="lnk" style="padding:2px 0" onclick="UI.sa=Date.now();render()">Бугунга қайтиш</button></div>`}</div><button class="btn" onclick="shiftP(1)" ${e>Date.now()?'disabled':''} aria-label="Кейинги">›</button></div>`;
+  const A=stats(s,e),B=stats(ps,pe);
+  if(!A.n&&!A.M.length&&!A.SP.length)return h+'<div class="card empty"><b>📊</b>Бу даврда маълумот йўқ.</div>';
+  h+=tilesHtml(A,B)+insightsHtml(A,B);
+  if(UI.sm==='day')h+=dayDetail(A);else if(UI.sm==='week')h+=weekDetail(A,B);else h+=monthDetail(A,B);
+  return h+`<button class="btn full" style="margin-bottom:12px" onclick="shareReport()">📤 Ҳисоботни улашиш (Telegram ва б.)</button>`}
+function dlt(a,b,better='down',fmt='v'){if(a==null||b==null)return'<div class="td neu">—</div>';const d=a-b,z=fmt==='v'?qv(d):Math.round(d);
+  if(z===0)return'<div class="td neu">= ўзгармади</div>';const up=z>0,cls=better==='none'?'neu':(better==='up'?up:!up)?'good':'bad';
+  const txt=fmt==='p'?Math.abs(z)+'%':fmt==='k'?fk(Math.abs(z))+' ккал':fv(Math.abs(d));return`<div class="td ${cls}">${up?'▲':'▼'} ${txt}</div>`}
+const tile=(l,v,u,d)=>`<div class="tile"><div class="tl">${l}</div><div class="tv">${v}${u?`<small> ${u}</small>`:''}</div>${d||''}</div>`;
+function tilesHtml(A,B){const per={day:'кечага',week:'ўтган ҳафтага',month:'ўтган ойга'}[UI.sm],t=[];
+  t.push(tile('Ўртача қанд',fv(A.avg),U(),dlt(A.avg,B.avg)));
+  t.push(tile('Наҳорги',fv(A.fastAvg),'',dlt(A.fastAvg,B.fastAvg)));
+  t.push(tile('Овқатдан кейин энг юқори',fv(A.peakAvg),'',dlt(A.peakAvg,B.peakAvg)));
+  t.push(tile('Кўтарилиш (ўртача)',fd(A.riseAvg),'',dlt(A.riseAvg,B.riseAvg)));
+  t.push(tile('Мақсад оралиғида',A.tir!=null?Math.round(A.tir)+'%':'—','',dlt(A.tir,B.tir,'up','p')));
+  t.push(tile('Ўлчовлар',String(A.n),'',`<div class="td neu">${A.mDays} кунда</div>`));
+  if(UI.sm==='day')t.push(tile('Калория',fk(A.kIn),'ккал',`<div class="td neu">спорт: ${fk(A.kOut)} ккал</div>`));
+  else t.push(tile('Калория (кунига)',fk(A.kInAvg),'ккал',dlt(A.kInAvg,B.kInAvg,'none','k')));
+  t.push(tile('Спорт',UI.sm==='day'?(A.sMin?A.sMin+' дақ':'—'):A.sDays+' кун','',`<div class="td neu">${fk(A.kOut)} ккал сарф</div>`));
+  if(UI.sm==='month'){const e=eA1c(A);t.push(tile('Тахминий HbA1c',e!=null?e.toFixed(1)+'%':'—','',`<div class="td neu">${e!=null?'фақат мўлжал':'маълумот кам'}</div>`))}
+  return`<div class="mut" style="font-size:12px;margin:0 0 6px">▲▼ — ${per} нисбатан ўзгариш</div><div class="tiles">${t.join('')}</div>`}
+function insightsHtml(A,B){const L=[],per={day:'кечага',week:'ўтган ҳафтага',month:'ўтган ойга'}[UI.sm],thr=isMg()?5:.3,sig=d=>Math.abs(toU(d))>=thr;
+  if(A.low)L.push(['⚠️',`${A.low} марта қанд паст бўлган (${fv(S.settings.low)} дан кам). Буни шифокорингизга айтинг.`,'bad']);
+  if(A.vhigh)L.push(['‼️',`${A.vhigh} марта қанд жуда юқори бўлган (${fv(S.settings.vhigh)} ва ундан юқори).`,'bad']);
+  if(A.fastAvg!=null&&B.fastAvg!=null){const d=A.fastAvg-B.fastAvg;L.push(sig(d)?[d<0?'📉':'📈',`Наҳорги қанд ${per} нисбатан ${fv(Math.abs(d))} га ${d<0?'пасайди':'ошди'}: ${fv(B.fastAvg)} → ${fv(A.fastAvg)}.`,d<0?'ok':'warn']:['➖',`Наҳорги қанд ${per} нисбатан деярли ўзгармади (${fv(A.fastAvg)}).`,'i'])}
+  else if(A.fastAvg!=null)L.push(['🌅',`Наҳорги қанд ${UI.sm==='day'?'':'ўртача '}${fv(A.fastAvg)} ${U()}.`,st(A.fastAvg,'fast')==='ok'?'ok':'warn']);
+  if(A.peakAvg!=null&&B.peakAvg!=null){const d=A.peakAvg-B.peakAvg;if(sig(d))L.push([d<0?'📉':'📈',`Овқатдан кейинги энг юқори қанд ${per} нисбатан ${fv(Math.abs(d))} га ${d<0?'пасайди':'ошди'}: ${fv(B.peakAvg)} → ${fv(A.peakAvg)}.`,d<0?'ok':'warn'])}
+  if(A.tir!=null&&A.n>=3)L.push(['🎯',`Ўлчовларнинг ${Math.round(A.tir)}% мақсад оралиғида.`,A.tir>=70?'ok':'warn']);
+  const pt=POST.filter(t=>A.by[t].length>=2);if(pt.length>=2){const k=pt.reduce((a,b)=>A.avgBy[b]>A.avgBy[a]?b:a);L.push(['⏱',`Қанд кўпинча овқатдан ${SLOT[TAGS[k].m]} кейин энг юқори бўляпти (ўртача ${fv(A.avgBy[k])}).`,'i'])}
+  const bk=A.curves.filter(x=>x.c.back!=null);if(bk.length>=2){const k=bk.filter(x=>x.c.back).length,ok=k/bk.length>=.7;L.push([ok?'✅':'⚠️',`${bk.length} та овқатнинг ${k} тасида қанд 3 соатда олдинги даражасига қайтди.`,ok?'ok':'warn'])}
+  const u=cmpUsual(A);if(u.u.rise!=null&&u.x.rise!=null)L.push(['⚡',`Ноодатий овқатдан кейин қанд ўртача ${fd(u.x.rise)} кўтарилди, одатийда — ${fd(u.u.rise)}.`,u.x.rise-u.u.rise>=1?'warn':'i']);
+  const sd=sportDrops(A);if(sd.length){const d=mean(sd.map(x=>x.d));L.push(['🏃',d<0?`Спорт қандни ўртача ${fv(-d)} га туширди (${sd.length} та машғулот).`:`Спортдан кейин қанд ўртача ${fv(d)} га ошди (${sd.length} та машғулот) — жадал машқда шундай бўлиши мумкин.`,d<0?'ok':'i'])}
+  const nf=nextFast(A);if(nf.nw>=2&&nf.nwo>=2&&sig(nf.w-nf.wo))L.push(['🌅',`Спорт қилинган кунлардан кейинги эрталаб наҳорги қанд ўртача ${fv(Math.abs(nf.w-nf.wo))} га ${nf.w<nf.wo?'паст':'юқори'} бўлди.`,nf.w<nf.wo?'ok':'i']);
+  const pm=postMealSport(A);if(pm.w.n>=2&&pm.wo.n>=2&&pm.w.p180!=null&&pm.wo.p180!=null&&sig(pm.w.p180-pm.wo.p180))L.push(['🍽',`Овқатдан кейин спорт қилганда 3 соатдаги қанд ўртача ${fv(Math.abs(pm.w.p180-pm.wo.p180))} га ${pm.w.p180<pm.wo.p180?'паст':'юқори'} бўлди.`,pm.w.p180<pm.wo.p180?'ok':'i']);
+  const cp=A.curves.filter(x=>x.m.kcal&&x.c.rise!=null);if(cp.length>=6){const r=corr(cp.map(x=>x.m.kcal),cp.map(x=>x.c.rise));if(r!=null)L.push(r>=.5?['🔥','Калорияси кўп овқатлардан кейин қанд кўпроқ кўтарилган (боғлиқлик кучли).','warn']:r>=.3?['🔥','Калория ошган сари қанд кўтарилиши ҳам бироз ошяпти.','i']:['🔥','Калория миқдори билан қанд кўтарилиши орасида аниқ боғлиқлик кўринмаяпти — овқат таркиби (углевод) муҳимроқ бўлиши мумкин.','i'])}
+  const fr=foodRank(A);if(fr.length>=2)L.push(['🍚',`Энг кўп кўтарган таом: ${esc(fr[0].name)} (${fd(fr[0].rise)}).`,'i']);
+  if(UI.sm!=='day'){const el=Math.max(1,Math.round((Math.min(A.e,addD(sod(Date.now()),1))-A.s)/DAY));if(A.fastN<el)L.push(['📝',`Наҳорги қанд ${el} кундан ${A.fastN} кунида ўлчанган. Ҳар куни ўлчасангиз, таҳлил аниқроқ бўлади.`,'i'])}
+  const md=medCmp(A);if(md&&md.w.n>=2&&md.wo.n>=2)L.push(['💊',`Дори ичилган кунлари ўртача қанд ${fv(md.w.avg)}, ичилмаган кунлари ${fv(md.wo.avg)}.`,'i']);
+  if(!L.length)L.push(['ℹ️','Хулоса чиқариш учун маълумот ҳали кам. Ўлчовларни киритишда давом этинг.','i']);
+  return`<div class="card"><h3>💡 Хулосалар</h3>${L.map(([i,t,c])=>`<div class="ins ${c}"><b>${i}</b><div>${t}</div></div>`).join('')}<div class="mut" style="font-size:12px;margin-top:8px">Бу — кузатув натижалари. Даволаш ва дори бўйича қарорни шифокор билан қабул қилинг.</div></div>`}
+function dayDetail(A){let h='';
+  if(A.n)h+=`<div class="card"><h3>📈 Кун давомида қанд</h3>${dayChart(A.s,A.e)}</div>`;
+  if(A.M.length)h+=`<div class="card"><h3>🍽 Овқатлар таъсири</h3>${A.M.slice().sort((a,b)=>a.ts-b.ts).map(mealRow).join('')}</div>`;
+  if(A.SP.length)h+=`<div class="card"><h3>🏃 Спорт</h3>${A.SP.slice().sort((a,b)=>a.ts-b.ts).map(sportRow).join('')}</div>`;
+  h+=kcalCard(A);const L=entries(A.s,A.e);if(L.length)h+=`<div class="card"><h3>📝 Ёзувлар</h3>${L.map(itemHtml).join('')}</div>`;return h}
+function weekDetail(A,B){return`<div class="card"><h3>📈 Кунлар бўйича</h3>${daysChart(A)}</div>`+curveCard(A,B,'Бу ҳафта','Ўтган ҳафта')+slotTable(A,B)+kcalBars(A)+compareCard(A)+foodCard(A)+scatterCard(A)}
+function monthDetail(A,B){return calCard(A)+`<div class="card"><h3>📈 Ой давомида ўзгариш</h3>${monthTrend(A)}</div>`+curveCard(A,B,'Бу ой','Ўтган ой')+weeksTable(A)+slotTable(A,B)+trend12()+kcalBars(A)+compareCard(A)+foodCard(A)+scatterCard(A)}
+function daysChart(A){const days=[];for(let t=A.s;t<A.e;t=addD(t,1))days.push(t);
+  const f=days.map((t,i)=>{const v=fastOf(t);return v==null?null:{x:i,y:toU(v),tip:`${dLong(t)}\nНаҳорги: ${fv(v)} ${U()}`}});
+  const p=days.map((t,i)=>{const v=peakOf(t);return v==null?null:{x:i,y:toU(v),tip:`${dLong(t)}\nОвқатдан кейин энг юқори: ${fv(v)} ${U()}`}});
+  if(!f.some(Boolean)&&!p.some(Boolean))return nodata();
+  return legend([[C.blue,'Наҳорги'],[C.orange,'Овқатдан кейин энг юқори']])+lineChart({x:{min:-.5,max:days.length-.5,ticks:days.map((t,i)=>({v:i,l:WDS[new Date(t).getDay()]+' '+new Date(t).getDate()}))},band:bandU(),series:[{color:C.blue,pts:f,connectGaps:true},{color:C.orange,pts:p,connectGaps:true}]})}
+function avgCurve(X){const r={};['pre',...POST].forEach(t=>{const v=X.curves.map(({c})=>c[t]).filter(Boolean).map(x=>x.v);r[t]=v.length?{v:mean(v),n:v.length}:null});return r}
+const dTxt=d=>`<span class="${qv(d)<0?'dg':qv(d)>0?'dbd':''}">${fd(d)}</span>`;
+function curveCard(A,B,la,lb){const a=avgCurve(A),b=avgCurve(B),T=['pre',...POST].filter(t=>t==='pre'||t!=='p120'||a.p120||b.p120),xs={};T.forEach((t,i)=>xs[t]=i);
+  const mk=(o,lab)=>T.map(t=>o[t]?{x:xs[t],y:toU(o[t].v),tip:`${lab}\n${t==='pre'?'Овқатдан олдин':TAGS[t].l}: ${fv(o[t].v)} ${U()}\n${o[t].n} та ўлчов`}:null);
+  const pa=mk(a,la),pb=mk(b,lb);if(!pa.some(Boolean)||pa.filter(Boolean).length<2)return'';
+  const ticks=T.map((t,i)=>({v:i,l:t==='pre'?'Олдин':t==='p30'?'30 дақ':t==='p60'?'1 соат':t==='p120'?'2 соат':'3 соат'}));
+  const rows=T.filter(t=>a[t]||b[t]);
+  return`<div class="card"><h3>〰️ Ўртача овқат эгри чизиғи</h3><div class="mut" style="font-size:13px">Овқатдан олдин ва кейин қанд ўртача қандай ўзгаради</div>${legend([[C.blue,la],[C.gray,lb]])}
+  ${lineChart({x:{min:-.35,max:T.length-.65,ticks},band:bandU(),series:[{color:C.gray,pts:pb,connectGaps:true},{color:C.blue,pts:pa,connectGaps:true}]})}
+  <table style="margin-top:6px"><tr><th></th><th>${la}</th><th>${lb}</th><th>Фарқ</th></tr>${rows.map(t=>`<tr><td>${t==='pre'?'Олдин':TAGS[t].n}</td><td><b>${a[t]?fv(a[t].v):'—'}</b></td><td>${b[t]?fv(b[t].v):'—'}</td><td>${a[t]&&b[t]?dTxt(a[t].v-b[t].v):'—'}</td></tr>`).join('')}</table></div>`}
+function slotTable(A,B){const rows=Object.keys(TAGS).filter(t=>A.by[t].length);if(!rows.length)return'';
+  return`<div class="card"><h3>🧮 Ўлчов турлари бўйича</h3><table><tr><th>Ўлчов</th><th>Сони</th><th>Ўртача</th><th>Олдинги</th><th>Фарқ</th></tr>${rows.map(t=>{const a=A.avgBy[t],b=B.avgBy[t];
+    return`<tr><td>${TAGS[t].n}</td><td>${A.by[t].length}</td><td><b>${fv(a)}</b>${sdot(a,t)}</td><td>${fv(b)}</td><td>${b!=null?dTxt(a-b):'—'}</td></tr>`}).join('')}</table>
+  <div class="mut" style="font-size:12px;margin-top:6px">«Олдинги» — ${UI.sm==='month'?'ўтган ой':UI.sm==='week'?'ўтган ҳафта':'кеча'}. Ранг — ўртача қиймат мақсадга нисбатан.</div></div>`}
+function kcalBars(A){const days=[];for(let t=A.s;t<A.e;t=addD(t,1))days.push(t);
+  const cats=days.map(t=>{const s=sod(t),e=addD(s,1),i=sum(inR(S.meals,s,e).map(m=>m.kcal||0)),o=sum(inR(S.sports,s,e).map(x=>x.kcal||0));
+    return{l:days.length>7?String(new Date(t).getDate()):WDS[new Date(t).getDay()],v:[i,o],tip:`${dLong(t)}\nИстеъмол: ${fk(i)} ккал\nСпорт сарфи: ${fk(o)} ккал`}});
+  if(!cats.some(c=>c.v[0]||c.v[1]))return'';
+  return`<div class="card"><h3>🔥 Калория (ккал)</h3><div class="g3 kc">${kc('Жами истеъмол',fk(A.kIn))}${kc('Спорт сарфи',fk(A.kOut))}${kc('Кунига ўртача',fk(A.kInAvg))}</div><div style="height:10px"></div>${legend([[C.yellow,'Истеъмол'],[C.aqua,'Спорт сарфи']],'rect',false)}${barChart({cats,colors:[C.yellow,C.aqua],ref:S.settings.kcalGoal||0})}</div>`}
+function compareCard(A){let h='';const u=cmpUsual(A);
+  if(u.x.n||u.u.n&&u.x.n)h+=`<h4>🍽 Одатий ва ноодатий овқат</h4><table><tr><th></th><th>Сони</th><th>Кўтарилиш</th><th>Энг юқори</th><th>3 соатда</th></tr>${[['✅ Одатий',u.u],['⚡ Ноодатий',u.x]].map(([n,o])=>`<tr><td>${n}</td><td>${o.n}</td><td>${fd(o.rise)}</td><td>${fv(o.peak)}</td><td>${fv(o.p180)}</td></tr>`).join('')}</table>`;
+  const sd=sportDrops(A);if(sd.length){const g={};sd.forEach(x=>{(g[x.s.type]=g[x.s.type]||[]).push(x)});const rows=Object.entries(g).map(([k,a])=>[(SPORTS[k]||SPORTS.other).i+' '+(SPORTS[k]||SPORTS.other).n,a]);if(rows.length>1)rows.push(['Жами',sd]);
+    h+=`<h4>🏃 Спортдан олдин → кейин</h4><table><tr><th>Тури</th><th>Сони</th><th>Олдин</th><th>Кейин</th><th>Фарқи</th></tr>${rows.map(([n,a])=>`<tr><td>${n}</td><td>${a.length}</td><td>${fv(mean(a.map(x=>x.pre)))}</td><td>${fv(mean(a.map(x=>x.post)))}</td><td><b>${fd(mean(a.map(x=>x.d)))}</b></td></tr>`).join('')}</table>`}
+  const pm=postMealSport(A);if(pm.w.n&&pm.wo.n)h+=`<h4>🍽→🏃 Овқатдан кейинги 3 соатда спорт</h4><table><tr><th></th><th>Сони</th><th>Кўтарилиш</th><th>Энг юқори</th><th>3 соатда</th></tr>${[['Спорт билан',pm.w],['Спортсиз',pm.wo]].map(([n,o])=>`<tr><td>${n}</td><td>${o.n}</td><td>${fd(o.rise)}</td><td>${fv(o.peak)}</td><td>${fv(o.p180)}</td></tr>`).join('')}</table>`;
+  const nf=nextFast(A);if(nf.nw&&nf.nwo)h+=`<h4>🌅 Эртасига наҳорги қанд</h4><table><tr><th></th><th>Кунлар</th><th>Наҳорги</th></tr><tr><td>Спорт қилинган кундан кейин</td><td>${nf.nw}</td><td><b>${fv(nf.w)}</b></td></tr><tr><td>Спортсиз кундан кейин</td><td>${nf.nwo}</td><td><b>${fv(nf.wo)}</b></td></tr></table>`;
+  const md=medCmp(A);if(md&&md.w.n&&md.wo.n)h+=`<h4>💊 Дори</h4><table><tr><th></th><th>Кунлар</th><th>Ўртача</th><th>Наҳорги</th></tr><tr><td>Дори ичилган кунлар</td><td>${md.w.n}</td><td>${fv(md.w.avg)}</td><td>${fv(md.w.fast)}</td></tr><tr><td>Ичилмаган кунлар</td><td>${md.wo.n}</td><td>${fv(md.wo.avg)}</td><td>${fv(md.wo.fast)}</td></tr></table>`;
+  if(!h)return'';return`<div class="card"><h3>⚖️ Нима таъсир қиляпти?</h3>${h}<div class="mut" style="font-size:12px;margin-top:8px">Сони 3 тадан кам бўлса, натижа тахминий. Ҳамма қийматлар — ${U()}.</div></div>`}
+function foodCard(A){const r=foodRank(A);if(!r.length)return'';
+  return`<div class="card"><h3>🍚 Таомлар: қанд қанча кўтарилди</h3><table><tr><th>Таом</th><th>Марта</th><th>Кўтарилиш</th></tr>${r.slice(0,8).map(x=>`<tr><td>${esc(x.name)}</td><td>${x.n}</td><td><b>${fd(x.rise)}</b></td></tr>`).join('')}</table><div class="mut" style="font-size:12px;margin-top:6px">Кўтарилиш = овқатдан кейинги энг юқори қанд − овқатдан олдинги қанд. Ҳисобланиши учун овқатдан олдин ҳам ўлчанг.</div></div>`}
+function scatterCard(A){const pts=A.curves.filter(({m,c})=>m.kcal&&c.rise!=null).map(({m,c})=>({x:m.kcal,y:toU(c.rise),u:!!m.unusual,tip:`${m.name||MEALT[m.type].n}\n${fk(m.kcal)} ккал · кўтарилиш ${fd(c.rise)}`}));
+  if(pts.length<4)return'';const r=corr(pts.map(p=>p.x),pts.map(p=>p.y)),rt=r==null?'—':Math.abs(r)>=.6?'кучли':Math.abs(r)>=.3?'ўртача':'кучсиз';
+  const cb=A.curves.filter(({m,c})=>m.carbs&&c.rise!=null),rc=cb.length>=4?corr(cb.map(x=>x.m.carbs),cb.map(x=>x.c.rise)):null;
+  return`<div class="card"><h3>📊 Калория ва қанд кўтарилиши</h3><div class="mut" style="font-size:13px">Ҳар бир нуқта — битта овқат (тик ўқ — кўтарилиш, ${U()}). Калория билан боғлиқлик: <b style="color:var(--tx)">${rt}</b>${r!=null?' (r = '+r.toFixed(2)+')':''}${rc!=null?`. Углевод билан: <b style="color:var(--tx)">${Math.abs(rc)>=.6?'кучли':Math.abs(rc)>=.3?'ўртача':'кучсиз'}</b> (r = ${rc.toFixed(2)})`:''}</div>${legend([[C.blue,'Одатий'],[C.orange,'Ноодатий']],'dot',false)}${scatter(pts)}</div>`}
+function calCard(A){const d0=new Date(A.s),y=d0.getFullYear(),mo=d0.getMonth(),nd=new Date(y,mo+1,0).getDate(),lead=(d0.getDay()+6)%7,today=sod(Date.now());let c='';
+  for(let i=0;i<lead;i++)c+='<div class="na"></div>';
+  for(let d=1;d<=nd;d++){const t=new Date(y,mo,d).getTime(),X=stats(t,addD(t,1)),cls=X.n?(X.tir>=80?'ok':X.tir>=50?'warn':'bad'):'',fut=t>Date.now();
+    c+=`<div class="${cls}${fut?' fut':''}${t===today?' now':''}" ${fut?'':`onclick="goDay(${t})"`}><b>${d}</b><small>${X.n?fv(X.avg):''}</small></div>`}
+  return`<div class="card"><h3>🗓 Ой тақвими</h3><div class="heat hd">${['Ду','Се','Чо','Па','Жу','Ша','Як'].map(x=>`<span>${x}</span>`).join('')}</div><div class="heat">${c}</div>
+  <div class="lg" style="margin-top:10px"><span><i class="sq ok"></i>80% ва ундан кўп мақсадда</span><span><i class="sq warn"></i>50–79%</span><span><i class="sq bad"></i>50% дан кам</span></div><div class="mut" style="font-size:12px">Рақам — кунлик ўртача қанд. Кунни босиб, батафсил кўринг.</div></div>`}
+function monthTrend(A){const end=Math.min(A.e,addD(sod(Date.now()),1)),days=[];for(let t=A.s;t<end;t=addD(t,1))days.push(t);if(!days.length)return nodata();
+  const ma=(fn,t)=>{const w=[];for(let i=0;i<7;i++){const v=fn(addD(t,-i));if(v!=null)w.push(v)}return w.length>=3?mean(w):null};
+  const pts=(fn,lab)=>days.map((t,i)=>{const v=fn(t);return v==null?null:{x:i,y:toU(v),tip:`${dLong(t)}\n${lab}: ${fv(v)} ${U()}`}});
+  const line=fn=>days.map((t,i)=>{const v=ma(fn,t);return v==null?null:{x:i,y:toU(v)}});
+  const fd_=pts(fastOf,'Наҳорги'),pd_=pts(peakOf,'Овқатдан кейин энг юқори');if(!fd_.some(Boolean)&&!pd_.some(Boolean))return nodata();
+  const nd=new Date(new Date(A.s).getFullYear(),new Date(A.s).getMonth()+1,0).getDate(),tk=[1,5,10,15,20,25,30].filter(d=>d<=nd).map(d=>({v:d-1,l:String(d)}));
+  return legend([[C.blue,'Наҳорги'],[C.orange,'Овқатдан кейин энг юқори']])+lineChart({x:{min:-.7,max:nd-.3,ticks:tk},band:bandU(),series:[{color:C.blue,pts:fd_,noLine:true,r:3.5,dop:.55},{color:C.orange,pts:pd_,noLine:true,r:3.5,dop:.55},{color:C.blue,pts:line(fastOf),noDots:true,w:2.5,connectGaps:true},{color:C.orange,pts:line(peakOf),noDots:true,w:2.5,connectGaps:true}]})
+    +'<div class="mut" style="font-size:12px">Нуқта — кунлик қиймат, чизиқ — 7 кунлик ўртача (ўзгариш йўналиши).</div>'}
+function weeksTable(A){const rows=[];for(let ws=sow(A.s);ws<A.e;ws=addD(ws,7)){const s=Math.max(ws,A.s),e=Math.min(addD(ws,7),A.e);if(s>Date.now())break;rows.push([new Date(s).getDate()+(e-s>DAY*1.5?'–'+new Date(addD(e,-1)).getDate():''),stats(s,e)])}
+  if(!rows.some(r=>r[1].n))return'';
+  return`<div class="card"><h3>📅 Ҳафталар бўйича</h3><table><tr><th>Кунлар</th><th>Ўртача</th><th>Наҳорги</th><th>Энг юқори*</th><th>Мақсадда</th><th>Спорт, кун</th></tr>${rows.map(([l,X])=>`<tr><td style="white-space:nowrap">${l}</td><td>${fv(X.avg)}</td><td>${fv(X.fastAvg)}</td><td>${fv(X.peakAvg)}</td><td>${X.tir!=null?Math.round(X.tir)+'%':'—'}</td><td>${X.sDays}</td></tr>`).join('')}</table><div class="mut" style="font-size:12px;margin-top:6px">* Овқатдан кейинги энг юқори қанд (ўртача)</div></div>`}
+function trend12(){const w0=sow(Date.now()),W=[];for(let i=11;i>=0;i--){const s=addD(w0,-7*i);W.push({s,X:stats(s,addD(s,7))})}
+  if(W.filter(w=>w.X.n).length<2)return'';
+  const f=W.map((w,i)=>w.X.fastAvg==null?null:{x:i,y:toU(w.X.fastAvg),tip:`${pLabel('week',w.s,addD(w.s,7))}\nНаҳорги ўртача: ${fv(w.X.fastAvg)}`});
+  const p=W.map((w,i)=>w.X.peakAvg==null?null:{x:i,y:toU(w.X.peakAvg),tip:`${pLabel('week',w.s,addD(w.s,7))}\nОвқатдан кейин энг юқори: ${fv(w.X.peakAvg)}`});
+  const tk=W.map((w,i)=>({v:i,l:i%3===0||i===11?shortD(w.s):''})).filter(t=>t.l);
+  return`<div class="card"><h3>📈 Сўнгги 12 ҳафта</h3><div class="mut" style="font-size:13px">Ҳар бир нуқта — бир ҳафталик ўртача</div>${legend([[C.blue,'Наҳорги'],[C.orange,'Овқатдан кейин энг юқори']])}${lineChart({x:{min:-.5,max:11.5,ticks:tk},band:bandU(),series:[{color:C.blue,pts:f,connectGaps:true},{color:C.orange,pts:p,connectGaps:true}]})}</div>`}
+
+/* ================= Созламалар ================= */
+const swi=(k,l,sub)=>`<div class="sw"><div>${l}${sub?`<div class="mut">${sub}</div>`:''}</div><input type="checkbox" ${S.settings[k]?'checked':''} onchange="S.settings['${k}']=this.checked;save();render()"></div>`;
+function doriInfo(){try{const d=JSON.parse(localStorage.getItem(DORI_KEY));if(d&&Array.isArray(d.meds)){let n=0;for(const k in d.log||{})for(const j in d.log[k])if(d.log[k][j]&&d.log[k][j].s==='taken')n++;return`Топилди: ${d.meds.length} та дори, ${n} та «ичдим» белгиси. Таҳлилда ҳисобга олинади.`}}catch(e){}return'Топилмади. «Дори вақти» иловаси шу сайтда бўлса, ўзи уланади.'}
+function vSet(){const s=S.settings,perm='Notification'in window?Notification.permission:'none';let h='';
+  h+=`<div class="card"><h3>📏 Ўлчов</h3><label>Глюкометрингиз қайси бирликда кўрсатади?</label><div class="chips">${[['mmol','ммоль/л (масалан 6.1)'],['mg','мг/дл (масалан 110)']].map(([k,n])=>`<button class="chip${s.unit===k?' on':''}" onclick="S.settings.unit='${k}';save();render()">${n}</button>`).join('')}</div>
+  <label>Асосан нима билан ўлчайсиз?</label><div class="chips">${[['meter','🩸 Глюкометр'],['cgm','📡 Сенсор (CGM)']].map(([k,n])=>`<button class="chip${s.src===k?' on':''}" onclick="S.settings.src='${k}';save();render()">${n}</button>`).join('')}</div></div>`;
+  h+=`<div class="card"><h3>🎯 Мақсад оралиқлари (${U()})</h3><div class="mut" style="font-size:13px">Стандарт қийматлар Америка диабет ассоциацияси (ADA) тавсиясига асосланган. Шифокорингиз бошқача белгиласа, ўзгартиринг.</div>
+  <table class="tg"><tr><th>Ўлчов</th><th style="text-align:center">дан</th><th style="text-align:center">гача</th></tr>${Object.keys(TAGS).map(t=>`<tr><td>${TAGS[t].i} ${TAGS[t].n}</td><td><input inputmode="decimal" value="${fvIn(s.tg[t][0])}" onchange="setTg('${t}',0,this.value)"></td><td><input inputmode="decimal" value="${fvIn(s.tg[t][1])}" onchange="setTg('${t}',1,this.value)"></td></tr>`).join('')}</table>
+  <div class="g2"><div><label>Паст қанд чегараси</label><input inputmode="decimal" value="${fvIn(s.low)}" onchange="setLim('low',this.value)"></div><div><label>Жуда юқори чегара</label><input inputmode="decimal" value="${fvIn(s.vhigh)}" onchange="setLim('vhigh',this.value)"></div></div>
+  <button class="btn full" style="margin-top:12px" onclick="resetTg()">↩️ Стандарт қийматларга қайтариш</button></div>`;
+  h+=`<div class="card"><h3>⏰ Эслатмалар</h3><label>Овқатдан кейин қачон ўлчайсиз?</label><div class="chips">${[30,60,120,180].map(m=>`<button class="chip${s.remind.includes(m)?' on':''}" onclick="togRem(${m})">${SLOT[m]}</button>`).join('')}</div>
+  <div class="sw" style="margin-top:6px"><div>🔔 Билдиришнома<div class="mut">${perm==='granted'?'✅ Рухсат берилган':perm==='denied'?'❌ Тақиқланган — телефон созламаларидан ёқинг':perm==='none'?'Бу браузерда йўқ':'Ҳали рухсат берилмаган'}</div></div>${perm==='default'?'<button class="btn p sm" onclick="askPerm()">Ёқиш</button>':''}</div>
+  ${swi('sound','🔊 Овоз')}${swi('vibrate','📳 Тебраниш')}${swi('fullAlert','🖥 Тўлиқ экранли огоҳлантириш','Илова очиқ бўлганда')}
+  <div class="alert i" style="margin:10px 0">ℹ️ Илова ёпиқ турса, телефон эслатмани кечиктириши мумкин. Ишончли бўлиши учун овқатни киритгач «📅 Телефон календарига қўшиш»ни босинг — телефон ва соатингиз ўз вақтида эслатади.</div>
+  <button class="btn full" onclick="testAlert()">🧪 Синов эслатмаси</button>
+  <label>🌅 Ҳар куни эрталаб наҳорги ўлчовни эслатиш</label><div class="row"><input type="time" value="${s.fastTime}" onchange="S.settings.fastTime=this.value;save()" style="flex:1"><button class="btn sm" onclick="icsFast()">📅 Календарга</button></div></div>`;
+  h+=`<div class="card"><h3>🔥 Калория</h3><div class="g2"><div><label>Кунлик калория мақсади</label><input inputmode="numeric" value="${s.kcalGoal||''}" placeholder="масалан 2200" onchange="S.settings.kcalGoal=Math.max(0,Math.round(num(this.value)||0));save()"></div>
+  <div><label>Вазнингиз (кг)</label><input inputmode="decimal" value="${s.weight||''}" placeholder="масалан 85" onchange="S.settings.weight=Math.max(0,num(this.value)||0);save()"></div></div><div class="mut" style="font-size:13px;margin-top:6px">Вазн — спорт калориясини тахминий ҳисоблаш учун (браслет ёки соат бўлмаганда).</div></div>`;
+  h+=`<div class="card"><h3>⭐ Тез танлаш таомлари</h3>${S.tpl.length?S.tpl.slice().sort((a,b)=>(b.n||0)-(a.n||0)).map(t=>`<div class="it" onclick="openTpl('${t.id}')"><span class="i">🍽</span><div class="sp"><b>${esc(t.name)}</b><div class="mut">${t.kcal?fk(t.kcal)+' ккал':'калория киритилмаган'}${t.carbs?' · '+t.carbs+' г углевод':''}${t.n?' · '+t.n+' марта':''}</div></div><span class="mut">✏️</span></div>`).join(''):'<div class="mut">Ҳали йўқ. Овқат киритишда «⭐ Тез танлашга сақлаш»ни белгиланг ёки шу ерда қўшинг.</div>'}<button class="btn full" style="margin-top:10px" onclick="openTpl()">＋ Таом қўшиш</button></div>`;
+  h+=`<div class="card"><h3>💊 Дорилар</h3>${S.medList.map(m=>`<div class="it" style="cursor:default"><span class="i">💊</span><div class="sp"><b>${esc(m.name)}</b> <span class="mut">${esc(m.dose||'')}</span></div><button class="btn sm bad" onclick="delMedL('${m.id}')" aria-label="Ўчириш">🗑</button></div>`).join('')}
+  <button class="btn full" style="margin-top:8px" onclick="openMedL()">＋ Рўйхатга дори қўшиш</button>${swi('dori','🔗 «Дори вақти» иловасидан олиш',doriInfo())}</div>`;
+  h+=`<div class="card"><h3>💾 Захира нусха</h3><div class="mut">Телефон алмашса ёки браузер тозаланса, маълумот йўқолмаслиги учун вақти-вақти билан сақлаб қўйинг.${s.lastBackup?' Охирги марта: '+dLabel(s.lastBackup)+'.':''}</div>
+  <div class="g2" style="margin-top:10px"><button class="btn" onclick="exportData()">⬇️ Сақлаш</button><button class="btn" onclick="$('#imp').click()">⬆️ Тиклаш</button></div>
+  <button class="btn full" style="margin-top:10px" onclick="exportXlsx()">📊 Excel файл (шифокор учун)</button><button class="btn bad full" style="margin-top:10px" onclick="wipe()">🗑 Ҳаммасини ўчириш</button></div>
+  <div class="mut" style="text-align:center;margin:10px 0 20px;font-size:12px">Қанд назорати · маълумотлар фақат телефонингизда сақланади<br>Илова шифокор маслаҳати ўрнини босмайди</div>`;
+  return h}
+function setTg(t,i,val){const x=num(val);if(!isFinite(x)||x<=0)return toast('Нотўғри қиймат');S.settings.tg[t][i]=fromU(x);const a=S.settings.tg[t];if(a[0]>a[1])a.reverse();save();toast('✅ Сақланди')}
+function setLim(k,val){const x=num(val);if(!isFinite(x)||x<=0)return toast('Нотўғри қиймат');S.settings[k]=fromU(x);save();toast('✅ Сақланди')}
+function resetTg(){if(!confirm('Мақсад оралиқлари стандарт ҳолатга қайтарилсинми?'))return;S.settings.tg=JSON.parse(JSON.stringify(DEF_TG));S.settings.low=3.9;S.settings.vhigh=13.9;save();render();toast('↩️ Қайтарилди')}
+function togRem(m){const r=S.settings.remind,i=r.indexOf(m);if(i>=0)r.splice(i,1);else r.push(m);r.sort((a,b)=>a-b);save();render()}
+
+/* ================= Ойналар (киритиш) ================= */
+let sheetOpen=false,ignorePop=0;
+function openSheet(html){$('#sheet').innerHTML=html;$('#mdl').classList.add('on');$('#sheet').scrollTop=0;if(!sheetOpen){sheetOpen=true;history.pushState({qs:1},'')}}
+function closeSheet(){if(!sheetOpen)return;sheetOpen=false;$('#mdl').classList.remove('on');if(history.state&&history.state.qs){ignorePop++;history.back()}}
+addEventListener('popstate',()=>{if(ignorePop>0){ignorePop--;return}if(sheetOpen){sheetOpen=false;$('#mdl').classList.remove('on')}});
+function selChip(sel,v){document.querySelectorAll(sel+' .chip').forEach(c=>c.classList.toggle('on',c.dataset.v===String(v)))}
+const btns=(fn,del)=>`<div class="g2" style="margin-top:18px"><button class="btn" onclick="closeSheet()">Бекор</button><button class="btn p" onclick="${fn}()">💾 Сақлаш</button></div>${del?`<button class="btn bad full" style="margin-top:10px" onclick="${del}()">🗑 Ўчириш</button>`:''}`;
+
+/* --- Қанд ўлчови --- */
+function mealCands(ts,t){if(t==='pre'||t==='fast')return S.meals.filter(m=>m.ts>=ts-30*MIN&&m.ts<=ts+3*HOUR).sort((a,b)=>a.ts-b.ts);return S.meals.filter(m=>m.ts<=ts+5*MIN&&ts-m.ts<=5*HOUR).sort((a,b)=>b.ts-a.ts)}
+function sportCands(ts,t){if(t==='spre')return S.sports.filter(x=>x.ts>=ts-20*MIN&&x.ts<=ts+3*HOUR).sort((a,b)=>a.ts-b.ts);return S.sports.filter(x=>x.ts<=ts&&ts-x.ts<=4*HOUR).sort((a,b)=>b.ts-a.ts)}
+function guess(ts){const d0=sod(ts),h=new Date(ts).getHours();
+  const P=allPend(ts).filter(p=>p.kind==='slot'&&ts>=p.due-20*MIN);if(P.length){const p=P.reduce((a,b)=>Math.abs(b.due-ts)<Math.abs(a.due-ts)?b:a);return{tag:p.tag,mealId:p.m.id}}
+  const fastDone=S.readings.some(r=>r.tag==='fast'&&sod(r.ts)===d0),rec=S.meals.filter(m=>m.ts<=ts+5*MIN&&ts-m.ts<=4*HOUR).sort((a,b)=>b.ts-a.ts)[0];
+  if(rec){const mins=(ts-rec.ts)/MIN,have=mealR(rec).map(r=>r.tag);
+    if(mins<12&&!have.includes('pre')&&!have.includes('fast'))return{tag:rec.type==='b'&&!fastDone&&h<12?'fast':'pre',mealId:rec.id};
+    const c=POST.filter(t=>!have.includes(t));if(c.length&&mins>=12)return{tag:c.reduce((a,b)=>Math.abs(TAGS[b].m-mins)<Math.abs(TAGS[a].m-mins)?b:a),mealId:rec.id}}
+  const sp=S.sports.filter(x=>x.ts<=ts&&ts-(x.ts+(x.dur||0)*MIN)<=60*MIN).sort((a,b)=>b.ts-a.ts)[0];
+  if(sp&&!S.readings.some(r=>r.sportId===sp.id&&r.tag==='spost'))return{tag:'spost',sportId:sp.id};
+  if(!fastDone&&!S.meals.some(m=>sod(m.ts)===d0&&m.ts<=ts)&&h>=3&&h<12)return{tag:'fast'};
+  return{tag:h>=21||h<3?'bed':'other'}}
+function openReading(id,pre={}){const r=id?S.readings.find(x=>x.id===id):null,ts=r?r.ts:Date.now();
+  const g=r?{tag:r.tag,mealId:r.mealId,sportId:r.sportId}:pre.tag?pre:guess(ts);
+  F={k:'r',id:r?r.id:null,tag:g.tag||'other',mealId:g.mealId||'',sportId:g.sportId||'',src:r?(r.src||'meter'):S.settings.src,remId:pre.remId||null};
+  openSheet(`<h2>${r?'✏️ Ўлчовни таҳрирлаш':'🩸 Қанд ўлчови'}</h2>
+  <div class="vin"><input id="f_v" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="${isMg()?'110':'6.1'}" value="${r?fvIn(r.v):''}" oninput="rStat()" onkeydown="if(event.key==='Enter')saveReading()"><span>${U()}</span></div>
+  <div id="f_st" class="fst"></div>
+  <label>Қачон ўлчадингиз?</label><div id="f_tags">${TAG_GROUPS.map(gr=>`<div class="chips" style="margin-bottom:6px">${gr.map(t=>`<button class="chip${F.tag===t?' on':''}" data-t="${t}" onclick="rTag('${t}')">${TAGS[t].i} ${TAGS[t].n}</button>`).join('')}</div>`).join('')}</div>
+  <div id="f_link"></div>
+  <label>Ўлчаган вақтингиз</label><input type="datetime-local" id="f_ts" value="${tsIn(ts)}" onchange="rLink()">
+  <label>Восита</label><div class="chips" id="f_src">${[['meter','🩸 Глюкометр'],['cgm','📡 Сенсор (CGM)']].map(([k,n])=>`<button class="chip${F.src===k?' on':''}" data-v="${k}" onclick="F.src='${k}';selChip('#f_src','${k}')">${n}</button>`).join('')}</div>
+  <label>Изоҳ (ихтиёрий)</label><input id="f_note" value="${esc(r&&r.note||'')}" placeholder="масалан: стресс, кам ухладим, касалман">
+  ${btns('saveReading',r?'delReading':'')}`);
+  rLink();rStat();if(!r)setTimeout(()=>{const i=$('#f_v');if(i&&sheetOpen)i.focus()},300)}
+function rTag(t){F.tag=t;document.querySelectorAll('#f_tags .chip').forEach(c=>c.classList.toggle('on',c.dataset.t===t));const ts=fromInp($('#f_ts').value);F.mealId='';F.sportId='';
+  if(t==='fast'||t==='pre'||POST.includes(t)){const c=mealCands(ts,t);if(c.length&&(POST.includes(t)||c[0].ts-ts<=60*MIN))F.mealId=c[0].id}
+  if(t==='spre'||t==='spost'){const c=sportCands(ts,t);if(c.length)F.sportId=c[0].id}
+  rLink();rStat()}
+function rLink(){const el=$('#f_link');if(!el)return;const ts=fromInp($('#f_ts').value),t=F.tag;
+  if(t==='fast'||t==='pre'||POST.includes(t)){let c=mealCands(ts,t);if(F.mealId&&!c.find(m=>m.id===F.mealId)){const m=getM(F.mealId);if(m)c=[m,...c]}
+    const m=F.mealId&&getM(F.mealId),since=m&&POST.includes(t)?'⏱ Овқатдан '+dur(ts-m.ts)+' ўтган':'';
+    el.innerHTML=`<label>Қайси овқат?</label>${c.length?`<select onchange="F.mealId=this.value;rLink()"><option value="">— боғланмасин —</option>${c.map(x=>`<option value="${x.id}"${x.id===F.mealId?' selected':''}>${MEALT[x.type].n} ${hm(x.ts)}${x.name?' — '+esc(x.name.slice(0,28)):''}</option>`).join('')}</select>${since?`<div class="mut" style="font-size:13px;margin-top:4px">${since}</div>`:''}`
+      :`<div class="mut" style="font-size:13px">${t==='fast'||t==='pre'?'Овқатни кейин киритсангиз, бу ўлчов унга ўзи боғланади.':'Яқин вақтда киритилган овқат топилмади.'}</div>`}`}
+  else if(t==='spre'||t==='spost'){let c=sportCands(ts,t);if(F.sportId&&!c.find(x=>x.id===F.sportId)){const x=S.sports.find(y=>y.id===F.sportId);if(x)c=[x,...c]}
+    el.innerHTML=`<label>Қайси машғулот?</label>${c.length?`<select onchange="F.sportId=this.value"><option value="">— боғланмасин —</option>${c.map(x=>`<option value="${x.id}"${x.id===F.sportId?' selected':''}>${(SPORTS[x.type]||SPORTS.other).n} ${hm(x.ts)}</option>`).join('')}</select>`
+      :`<div class="mut" style="font-size:13px">${t==='spre'?'Спортни кейин киритсангиз, бу ўлчов унга ўзи боғланади.':'Яқин вақтда киритилган спорт топилмади.'}</div>`}`}
+  else el.innerHTML=''}
+function rStat(){const el=$('#f_st');if(!el)return;const x=num($('#f_v').value),tg=S.settings.tg[F.tag]||S.settings.tg.other,tt=`Мақсад: ${fv(tg[0])}–${fv(tg[1])}`;
+  if(!isFinite(x)){el.innerHTML=`<span class="mut">${tt}</span>`;return}const v=fromU(x);
+  if(!okV(v)){el.innerHTML='<span class="tag bad">Қиймат нотўғри кўриняпти</span>';return}el.innerHTML=stTag(st(v,F.tag))+` <span class="mut">${tt}</span>`}
+function saveReading(){const x=num($('#f_v').value);if(!isFinite(x))return toast('Қанд қийматини киритинг');const v=fromU(x);if(!okV(v))return toast('Қиймат нотўғри: '+x);
+  const ts=tsOut(),isMeal=F.tag==='fast'||F.tag==='pre'||POST.includes(F.tag),isSp=F.tag==='spre'||F.tag==='spost';
+  const o={id:F.id||uid(),ts,v,tag:F.tag,src:F.src};if(isMeal&&F.mealId)o.mealId=F.mealId;if(isSp&&F.sportId)o.sportId=F.sportId;const note=$('#f_note').value.trim();if(note)o.note=note;
+  if(F.id){const i=S.readings.findIndex(r=>r.id===F.id);if(i>=0)S.readings[i]=o}else S.readings.push(o);
+  if(F.remId){const rm=S.rem.find(q=>q.id===F.remId);if(rm)rm.done=true}
+  S.settings.src=F.src;save();closeSheet();render();const s=st(v,o.tag);
+  toast(s==='ok'?'✅ Сақланди — меъёрда':s==='low'||s==='vhigh'?'⚠️ Сақланди — эътибор беринг':'✅ Сақланди');
+  if((s==='low'||s==='vhigh')&&UI.tab!=='today'){UI.tab='today';render();scrollTo(0,0)}}
+function delReading(){if(!confirm('Бу ўлчов ўчирилсинми?'))return;S.readings=S.readings.filter(r=>r.id!==F.id);save();closeSheet();render();toast('🗑 Ўчирилди')}
+
+/* --- Овқат --- */
+const mealByTime=ts=>{const h=new Date(ts).getHours();return h>=4&&h<11?'b':h>=11&&h<16?'l':h>=16&&h<22?'d':'s'};
+function openMeal(id){const m=id?getM(id):null,ts=m?m.ts:Date.now(),c=m?curve(m):null,tp=S.tpl.slice().sort((a,b)=>(b.n||0)-(a.n||0)).slice(0,12);
+  F={k:'m',id:m?m.id:null,type:m?m.type:mealByTime(ts),unusual:m?!!m.unusual:false};
+  openSheet(`<h2>${m?'✏️ Овқатни таҳрирлаш':'🍽 Овқат'}</h2>
+  <label>Овқат тури</label><div class="chips" id="f_type">${Object.entries(MEALT).map(([k,o])=>`<button class="chip${F.type===k?' on':''}" data-v="${k}" onclick="F.type='${k}';selChip('#f_type','${k}')">${o.i} ${o.n}</button>`).join('')}</div>
+  <label>Бу овқат...</label><div class="chips" id="f_us"><button class="chip${!F.unusual?' on':''}" data-v="0" onclick="F.unusual=false;selChip('#f_us','0')">✅ Одатий</button><button class="chip${F.unusual?' on':''}" data-v="1" onclick="F.unusual=true;selChip('#f_us','1')">⚡ Ноодатий</button></div>
+  <div class="mut" style="font-size:12px;margin-top:5px">Ноодатий — тўй, меҳмондорчилик, ширинлик, ҳаддан ташқари кўп ёки кечаси овқатланиш ва ҳ.к.</div>
+  ${tp.length?`<label>⭐ Тез танлаш</label><div class="chips">${tp.map(t=>`<button class="chip" onclick="useTpl('${t.id}')">${esc(t.name)}${t.kcal?' · '+t.kcal:''}</button>`).join('')}</div>`:''}
+  <label>Нима едингиз?</label><input id="f_name" value="${esc(m&&m.name||'')}" placeholder="масалан: палов, салат, нон, чой">
+  <div class="g2"><div><label>Калория (ккал)</label><input id="f_kcal" inputmode="numeric" value="${m&&m.kcal!=null?m.kcal:''}" placeholder="масалан 650"></div><div><label>Углевод, г (ихтиёрий)</label><input id="f_carbs" inputmode="numeric" value="${m&&m.carbs!=null?m.carbs:''}" placeholder="—"></div></div>
+  <label>Овқатни бошлаган вақтингиз</label><input type="datetime-local" id="f_ts" value="${tsIn(ts)}">
+  ${m?(c.pre?`<div class="mut" style="margin-top:10px">Овқатдан олдинги қанд: <b style="color:var(--tx)">${fv(c.pre.v)}</b> ${U()}</div>`:''):`<label>Овқатдан олдинги қанд (ихтиёрий)</label><div class="vin sm" style="margin-top:0"><input id="f_pre" inputmode="decimal" placeholder="—"><span>${U()}</span></div>`}
+  <div class="sw" style="margin-top:8px"><div>⏰ Ўлчашни эслатиш<div class="mut">${S.settings.remind.length?S.settings.remind.map(x=>SLOT[x]).join(', ')+' кейин':'Созламада вақт танланмаган'}</div></div><input type="checkbox" id="f_rem" ${m&&m.noRem?'':'checked'}></div>
+  <div class="sw"><div>⭐ Тез танлашга сақлаш<div class="mut">Кейинги сафар бир босишда киритилади</div></div><input type="checkbox" id="f_tpl"></div>
+  <label>Изоҳ (ихтиёрий)</label><input id="f_note" value="${esc(m&&m.note||'')}">
+  ${btns('saveMeal',m?'delMeal':'')}`)}
+function useTpl(id){const t=S.tpl.find(x=>x.id===id);if(!t)return;$('#f_name').value=t.name;$('#f_kcal').value=t.kcal!=null?t.kcal:'';$('#f_carbs').value=t.carbs!=null?t.carbs:''}
+function saveMeal(){const name=$('#f_name').value.trim(),k=num($('#f_kcal').value),cb=num($('#f_carbs').value),ts=tsOut(),old=F.id?getM(F.id):null;
+  const o={id:F.id||uid(),ts,type:F.type,name,kcal:isFinite(k)?Math.round(k):null,carbs:isFinite(cb)?Math.round(cb):null,unusual:!!F.unusual,note:$('#f_note').value.trim(),noRem:!$('#f_rem').checked,fired:{...(old&&old.fired||{})}};
+  S.settings.remind.forEach(min=>{if(ts+min*MIN<Date.now()-5*MIN&&!o.fired['p'+min])o.fired['p'+min]=Date.now()});
+  if(old)Object.assign(old,o);else S.meals.push(o);
+  const pv=num($('#f_pre')?$('#f_pre').value:'');
+  if(isFinite(pv)&&okV(fromU(pv))){const d0=sod(ts),fd0=S.readings.some(r=>r.tag==='fast'&&sod(r.ts)===d0);S.readings.push({id:uid(),ts:ts-MIN,v:fromU(pv),tag:o.type==='b'&&!fd0&&new Date(ts).getHours()<12?'fast':'pre',mealId:o.id,src:S.settings.src})}
+  S.readings.forEach(r=>{if(r.mealId)return;if((r.tag==='fast'||r.tag==='pre')&&r.ts<=ts+5*MIN&&ts-r.ts<=90*MIN)r.mealId=o.id;else if(POST.includes(r.tag)&&r.ts>ts&&r.ts-ts<=4*HOUR)r.mealId=o.id});
+  if(name){const t=S.tpl.find(x=>x.name.toLowerCase()===name.toLowerCase());if($('#f_tpl').checked){if(t){t.kcal=o.kcal;t.carbs=o.carbs;t.n=(t.n||0)+(old?0:1)}else S.tpl.push({id:uid(),name,kcal:o.kcal,carbs:o.carbs,n:1})}else if(t&&!old)t.n=(t.n||0)+1}
+  save();closeSheet();if(!old)UI.tab='today';render();
+  toast(old||o.noRem||!S.settings.remind.length?'✅ Сақланди':'✅ Сақланди. '+S.settings.remind.map(x=>SLOT[x]).join(', ')+'дан кейин эслатаман');
+  if(!old&&!o.noRem&&S.settings.notif&&'Notification'in window&&Notification.permission==='default')setTimeout(askPerm,400)}
+function delMeal(){if(!confirm('Овқат ўчирилсинми? Унга боғланган қанд ўлчовлари сақланиб қолади.'))return;S.meals=S.meals.filter(m=>m.id!==F.id);S.readings.forEach(r=>{if(r.mealId===F.id)delete r.mealId});save();closeSheet();render();toast('🗑 Ўчирилди')}
+
+/* --- Спорт --- */
+function openSport(id){const x=id?S.sports.find(s=>s.id===id):null,end=x?x.ts+(x.dur||0)*MIN:Date.now(),rs=x?S.readings.filter(r=>r.sportId===x.id):[],a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost');
+  F={k:'s',id:x?x.id:null,type:x?x.type:(SPORTS[S.settings.lastSport]?S.settings.lastSport:'run'),inten:x?x.inten||2:2};
+  openSheet(`<h2>${x?'✏️ Спортни таҳрирлаш':'🏃 Спорт'}</h2>
+  <label>Тури</label><div class="chips" id="f_sp">${Object.entries(SPORTS).map(([k,o])=>`<button class="chip${F.type===k?' on':''}" data-v="${k}" onclick="F.type='${k}';selChip('#f_sp','${k}')">${o.i} ${o.n}</button>`).join('')}</div>
+  <div class="g2"><div><label>Давомийлиги (дақиқа)</label><input id="f_dur" inputmode="numeric" value="${x&&x.dur!=null?x.dur:''}" placeholder="45"></div><div><label>Сарфланган калория</label><input id="f_kcal" inputmode="numeric" value="${x&&x.kcal!=null?x.kcal:''}" placeholder="ккал"></div></div>
+  <div class="chips" style="margin-top:8px">${[15,30,45,60,90].map(d=>`<button class="chip" onclick="$('#f_dur').value=${d}">${d} дақ</button>`).join('')}</div>
+  ${S.settings.weight?'<button class="btn sm" style="margin-top:10px" onclick="estKcal()">≈ Калорияни тахминий ҳисоблаш</button>':'<div class="mut" style="font-size:12px;margin-top:8px">Калорияни фитнес браслет ёки соатингиздан ёзинг. Созламада вазнингизни киритсангиз, тахминий ҳисоблаб беради.</div>'}
+  <label>Жадаллиги</label><div class="chips" id="f_in">${Object.entries(INT).map(([k,o])=>`<button class="chip${String(F.inten)===k?' on':''}" data-v="${k}" onclick="F.inten=${k};selChip('#f_in','${k}')">${o.n}</button>`).join('')}</div>
+  <label>Тугатган вақтингиз</label><input type="datetime-local" id="f_ts" value="${tsIn(end)}">
+  ${x?(a||b?`<div class="mut" style="margin-top:10px">Қанд: олдин <b style="color:var(--tx)">${a?fv(a.v):'—'}</b> → кейин <b style="color:var(--tx)">${b?fv(b.v):'—'}</b></div>`:''):`<div class="g2"><div><label>Спортдан олдин қанд</label><input id="f_spre" inputmode="decimal" placeholder="ихтиёрий"></div><div><label>Спортдан кейин қанд</label><input id="f_spost" inputmode="decimal" placeholder="ихтиёрий"></div></div>`}
+  <label>Изоҳ (ихтиёрий)</label><input id="f_note" value="${esc(x&&x.note||'')}">
+  ${btns('saveSport',x?'delSport':'')}`)}
+function estKcal(){const d=num($('#f_dur').value);if(!isFinite(d)||d<=0)return toast('Аввал давомийликни киритинг');const k=Math.round((SPORTS[F.type]||SPORTS.other).met*INT[F.inten].k*S.settings.weight*d/60);$('#f_kcal').value=k;toast('≈ '+k+' ккал (тахминий)')}
+function saveSport(){const d=num($('#f_dur').value),k=num($('#f_kcal').value),end=tsOut(),dd=isFinite(d)&&d>0?Math.round(d):0,ts=end-dd*MIN,old=F.id?S.sports.find(x=>x.id===F.id):null;
+  const o={id:F.id||uid(),ts,type:F.type,dur:dd||null,kcal:isFinite(k)?Math.round(k):null,inten:+F.inten||2,note:$('#f_note').value.trim()};
+  if(old)Object.assign(old,o);else S.sports.push(o);S.settings.lastSport=F.type;
+  const a=num($('#f_spre')?$('#f_spre').value:''),b=num($('#f_spost')?$('#f_spost').value:'');
+  if(isFinite(a)&&okV(fromU(a)))S.readings.push({id:uid(),ts:ts-MIN,v:fromU(a),tag:'spre',sportId:o.id,src:S.settings.src});
+  if(isFinite(b)&&okV(fromU(b)))S.readings.push({id:uid(),ts:end,v:fromU(b),tag:'spost',sportId:o.id,src:S.settings.src});
+  S.readings.forEach(r=>{if(r.sportId)return;if(r.tag==='spre'&&r.ts<=ts+5*MIN&&ts-r.ts<=60*MIN)r.sportId=o.id;else if(r.tag==='spost'&&r.ts>=ts&&r.ts-end<=90*MIN)r.sportId=o.id});
+  save();closeSheet();render();toast('✅ Сақланди')}
+function delSport(){if(!confirm('Спорт ёзуви ўчирилсинми?'))return;S.sports=S.sports.filter(x=>x.id!==F.id);S.readings.forEach(r=>{if(r.sportId===F.id)delete r.sportId});save();closeSheet();render();toast('🗑 Ўчирилди')}
+
+/* --- Дори --- */
+function openMed(id){const x=id?S.meds.find(m=>m.id===id):null;F={k:'d',id:x?x.id:null};
+  openSheet(`<h2>💊 Дори</h2>${S.medList.length?`<label>Рўйхатдан танланг</label><div class="chips">${S.medList.map(m=>`<button class="chip" onclick="useMedL('${m.id}')">${esc(m.name)}</button>`).join('')}</div>`:''}
+  <label>Дори номи</label><input id="f_name" value="${esc(x&&x.name||'')}">
+  <label>Дозаси</label><input id="f_dose" value="${esc(x&&x.dose||'')}" placeholder="масалан: 1 таблетка">
+  <label>Ичган вақтингиз</label><input type="datetime-local" id="f_ts" value="${tsIn(x?x.ts:Date.now())}">
+  ${x?'':'<div class="sw" style="margin-top:8px"><div>⭐ Рўйхатга сақлаш<div class="mut">Кейинги сафар бир босишда танланади</div></div><input type="checkbox" id="f_ml"></div>'}
+  ${btns('saveMed',x?'delMed':'')}`)}
+function useMedL(id){const m=S.medList.find(x=>x.id===id);if(!m)return;$('#f_name').value=m.name;$('#f_dose').value=m.dose||''}
+function saveMed(){const name=$('#f_name').value.trim();if(!name)return toast('Дори номини киритинг');const o={id:F.id||uid(),ts:tsOut(),name,dose:$('#f_dose').value.trim()};
+  if(F.id){const i=S.meds.findIndex(x=>x.id===F.id);if(i>=0)S.meds[i]=o}else S.meds.push(o);
+  if($('#f_ml')&&$('#f_ml').checked&&!S.medList.some(x=>x.name.toLowerCase()===name.toLowerCase()))S.medList.push({id:uid(),name,dose:o.dose});
+  save();closeSheet();render();toast('✅ Сақланди')}
+function delMed(){if(!confirm('Ўчирилсинми?'))return;S.meds=S.meds.filter(x=>x.id!==F.id);save();closeSheet();render()}
+function openMedL(){F={k:'ml'};openSheet(`<h2>💊 Рўйхатга дори</h2><label>Номи</label><input id="f_name"><label>Дозаси</label><input id="f_dose" placeholder="масалан: 1 таблетка">${btns('saveMedL')}`)}
+function saveMedL(){const name=$('#f_name').value.trim();if(!name)return toast('Номини киритинг');S.medList.push({id:uid(),name,dose:$('#f_dose').value.trim()});save();closeSheet();render()}
+function delMedL(id){S.medList=S.medList.filter(x=>x.id!==id);save();render()}
+
+/* --- Тез танлаш таоми --- */
+function openTpl(id){const t=id?S.tpl.find(x=>x.id===id):null;F={k:'t',id:t?t.id:null};
+  openSheet(`<h2>⭐ Таом</h2><label>Номи</label><input id="f_name" value="${esc(t&&t.name||'')}" placeholder="масалан: Тухум, нон, чой">
+  <div class="g2"><div><label>Калория (ккал)</label><input id="f_kcal" inputmode="numeric" value="${t&&t.kcal!=null?t.kcal:''}"></div><div><label>Углевод (г)</label><input id="f_carbs" inputmode="numeric" value="${t&&t.carbs!=null?t.carbs:''}"></div></div>
+  ${btns('saveTpl',t?'delTpl':'')}`)}
+function saveTpl(){const name=$('#f_name').value.trim();if(!name)return toast('Номини киритинг');const k=num($('#f_kcal').value),c=num($('#f_carbs').value);
+  const o={name,kcal:isFinite(k)?Math.round(k):null,carbs:isFinite(c)?Math.round(c):null},t=F.id&&S.tpl.find(x=>x.id===F.id);
+  if(t)Object.assign(t,o);else S.tpl.push({id:uid(),n:0,...o});save();closeSheet();render();toast('✅ Сақланди')}
+function delTpl(){S.tpl=S.tpl.filter(x=>x.id!==F.id);save();closeSheet();render()}
+
+/* ================= Экспорт / импорт ================= */
+function dl(name,data,type){const b=data instanceof Blob?data:new Blob([data],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
+function exportData(){S.settings.lastBackup=Date.now();save();dl('qand-nazorati-'+dk(Date.now())+'.json',JSON.stringify(S),'application/json');toast('💾 Захира файл сақланди');render()}
+function importData(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!Array.isArray(d.readings))throw 0;if(!confirm('Жорий маълумотлар файлдагиси билан алмаштирилади. Давом этамизми?'))return;S=norm(d);save();render();toast('✅ Тикланди')}catch(e){toast('Файл нотўғри')}};
+  r.readAsText(f);inp.value=''}
+function wipe(){if(confirm('Барча ўлчовлар, овқат ва спорт ёзувлари ўчирилади. Ростданми?')&&confirm('Қайта тикланмайди. Аниқми?')){S=def();save();render();toast('🗑 Ўчирилди')}}
+const CRC=(()=>{const t=new Uint32Array(256);for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})();
+function crc32(u){let c=0xFFFFFFFF;for(let i=0;i<u.length;i++)c=CRC[(c^u[i])&255]^(c>>>8);return(c^0xFFFFFFFF)>>>0}
+function zip(files){const enc=new TextEncoder(),parts=[],cd=[];let off=0;
+  files.forEach(([name,str])=>{const nb=enc.encode(name),data=enc.encode(str),crc=crc32(data),sz=data.length,lh=new DataView(new ArrayBuffer(30)),ch=new DataView(new ArrayBuffer(46));
+    lh.setUint32(0,0x04034b50,true);lh.setUint16(4,20,true);lh.setUint16(6,0x0800,true);lh.setUint16(8,0,true);lh.setUint16(10,0,true);lh.setUint16(12,0x21,true);lh.setUint32(14,crc,true);lh.setUint32(18,sz,true);lh.setUint32(22,sz,true);lh.setUint16(26,nb.length,true);lh.setUint16(28,0,true);
+    ch.setUint32(0,0x02014b50,true);ch.setUint16(4,20,true);ch.setUint16(6,20,true);ch.setUint16(8,0x0800,true);ch.setUint16(10,0,true);ch.setUint16(12,0,true);ch.setUint16(14,0x21,true);ch.setUint32(16,crc,true);ch.setUint32(20,sz,true);ch.setUint32(24,sz,true);ch.setUint16(28,nb.length,true);ch.setUint16(30,0,true);ch.setUint16(32,0,true);ch.setUint16(34,0,true);ch.setUint16(36,0,true);ch.setUint32(38,0,true);ch.setUint32(42,off,true);
+    parts.push(new Uint8Array(lh.buffer),nb,data);cd.push(new Uint8Array(ch.buffer),nb);off+=30+nb.length+sz});
+  const cs=cd.reduce((a,b)=>a+b.length,0),e=new DataView(new ArrayBuffer(22));e.setUint32(0,0x06054b50,true);e.setUint16(4,0,true);e.setUint16(6,0,true);e.setUint16(8,files.length,true);e.setUint16(10,files.length,true);e.setUint32(12,cs,true);e.setUint32(16,off,true);e.setUint16(20,0,true);
+  return new Blob([...parts,...cd,new Uint8Array(e.buffer)],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+function xlsx(sheets){const X=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'');
+  const col=n=>{let s='';n++;while(n){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26)}return s},H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n',NS='http://schemas.openxmlformats.org/',f=[];
+  sheets.forEach((sh,i)=>{const w=[];sh.rows.forEach(r=>r.forEach((c,j)=>{w[j]=Math.max(w[j]||6,Math.min(40,String(c??'').length+2))}));
+    let x=H+`<worksheet xmlns="${NS}spreadsheetml/2006/main"><sheetViews><sheetView workbookViewId="0"><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews><cols>${w.map((v,j)=>`<col min="${j+1}" max="${j+1}" width="${v}" customWidth="1"/>`).join('')}</cols><sheetData>`;
+    sh.rows.forEach((r,ri)=>{x+=`<row r="${ri+1}">`;r.forEach((c,ci)=>{if(c===null||c===undefined||c==='')return;const ref=col(ci)+(ri+1),s=ri===0?' s="1"':'';
+      x+=typeof c==='number'&&isFinite(c)?`<c r="${ref}"${s}><v>${c}</v></c>`:`<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${X(c)}</t></is></c>`});x+='</row>'});
+    f.push([`xl/worksheets/sheet${i+1}.xml`,x+'</sheetData></worksheet>'])});
+  f.unshift([`[Content_Types].xml`,H+`<Types xmlns="${NS}package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}</Types>`],
+    ['_rels/.rels',H+`<Relationships xmlns="${NS}package/2006/relationships"><Relationship Id="rId1" Type="${NS}officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`],
+    ['xl/workbook.xml',H+`<workbook xmlns="${NS}spreadsheetml/2006/main" xmlns:r="${NS}officeDocument/2006/relationships"><sheets>${sheets.map((s,i)=>`<sheet name="${X(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}</sheets></workbook>`],
+    ['xl/_rels/workbook.xml.rels',H+`<Relationships xmlns="${NS}package/2006/relationships">${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="${NS}officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}<Relationship Id="rId${sheets.length+1}" Type="${NS}officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`],
+    ['xl/styles.xml',H+`<styleSheet xmlns="${NS}spreadsheetml/2006/main"><fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><name val="Calibri"/></font></fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="2"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/><xf numFmtId="0" fontId="1" fillId="0" borderId="0" xfId="0" applyFont="1"/></cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`]);
+  return zip(f)}
+function exportXlsx(){if(!S.readings.length&&!S.meals.length)return toast('Ҳали маълумот йўқ');const u=U(),nv=v=>v==null||isNaN(v)?'':isMg()?Math.round(v*18):Math.round(v*10)/10,byT=(a,b)=>a.ts-b.ts;
+  const R=S.readings.slice().sort(byT),M=S.meals.slice().sort(byT),SP=S.sports.slice().sort(byT);
+  const days=[...new Set([...R,...M,...SP].map(x=>dk(x.ts)))].sort();
+  const s1=[['Сана','Наҳорги ('+u+')','Ўртача','Энг юқори','Ўлчовлар','Мақсадда, %','Калория','Спорт, ккал','Спорт, дақ'],...days.map(k=>{const p=k.split('-').map(Number),s=new Date(p[0],p[1]-1,p[2]).getTime(),A=stats(s,addD(s,1));return[k,nv(fastOf(s)),nv(A.avg),nv(A.max),A.n||'',A.tir!=null?Math.round(A.tir):'',A.kIn||'',A.kOut||'',A.sMin||'']})];
+  const s2=[['Сана','Вақт','Қанд ('+u+')','Ўлчов','Ҳолат','Овқат','Восита','Изоҳ'],...R.map(r=>{const m=r.mealId&&getM(r.mealId);return[dk(r.ts),hm(r.ts),nv(r.v),TAGS[r.tag].l,STL[st(r.v,r.tag)][1],m?MEALT[m.type].n+' '+hm(m.ts):'',r.src==='cgm'?'Сенсор':'Глюкометр',r.note||'']})];
+  const s3=[['Сана','Вақт','Тури','Таом','Калория','Углевод, г','Одатий/Ноодатий','Олдин','30 дақ','1 соат','2 соат','3 соат','Кўтарилиш','Изоҳ'],...M.map(m=>{const c=curve(m);return[dk(m.ts),hm(m.ts),MEALT[m.type].n,m.name||'',m.kcal??'',m.carbs??'',m.unusual?'Ноодатий':'Одатий',nv(c.pre&&c.pre.v),nv(c.p30&&c.p30.v),nv(c.p60&&c.p60.v),nv(c.p120&&c.p120.v),nv(c.p180&&c.p180.v),nv(c.rise),m.note||'']})];
+  const s4=[['Сана','Вақт','Тури','Давомийлик, дақ','Калория','Жадаллик','Олдин','Кейин','Фарқ','Изоҳ'],...SP.map(x=>{const rs=S.readings.filter(r=>r.sportId===x.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost');return[dk(x.ts),hm(x.ts),(SPORTS[x.type]||SPORTS.other).n,x.dur??'',x.kcal??'',INT[x.inten||2].n,nv(a&&a.v),nv(b&&b.v),a&&b?nv(b.v-a.v):'',x.note||'']})];
+  const s5=[['Сана','Вақт','Дори','Доза','Манба'],...medEvents(0,Date.now()+DAY).map(x=>[dk(x.ts),hm(x.ts),x.name,x.dose||'',x.src==='dori'?'«Дори вақти»':'Қўлда'])];
+  dl('qand-nazorati-'+dk(Date.now())+'.xlsx',xlsx([{name:'Кунлар',rows:s1},{name:'Қанд',rows:s2},{name:'Овқат',rows:s3},{name:'Спорт',rows:s4},{name:'Дори',rows:s5}]));toast('📊 Excel файл тайёр')}
+const icsD=t=>new Date(t).toISOString().replace(/[-:]/g,'').replace(/\.\d{3}/,'');
+const icsEsc=s=>String(s||'').replace(/\\/g,'\\\\').replace(/;/g,'\\;').replace(/,/g,'\\,').replace(/\n/g,'\\n');
+function fold(line){const enc=new TextEncoder();let out='',cur='',n=0;for(const ch of line){const b=enc.encode(ch).length;if(n+b>73){out+=cur+'\r\n ';cur='';n=1}cur+=ch;n+=b}return out+cur}
+function icsFile(name,events){const L=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Qand nazorati//UZ','CALSCALE:GREGORIAN','METHOD:PUBLISH'];events.forEach(e=>L.push(...e));L.push('END:VCALENDAR');dl(name,L.map(fold).join('\r\n'),'text/calendar')}
+const alarm=t=>['BEGIN:VALARM','ACTION:DISPLAY','TRIGGER:PT0M','DESCRIPTION:'+icsEsc(t),'END:VALARM'];
+function icsMeal(id){const m=getM(id);if(!m)return;const now=Date.now(),have=mealR(m).map(r=>r.tag);
+  const ev=S.settings.remind.map(min=>({min,due:Math.round((m.ts+min*MIN)/MIN)*MIN})).filter(x=>x.due>now+MIN&&!have.includes('p'+x.min)).map(x=>['BEGIN:VEVENT',`UID:${m.id}-${x.min}@qand`,'DTSTAMP:'+icsD(now),'DTSTART:'+icsD(x.due),'DTEND:'+icsD(x.due+5*MIN),
+    'SUMMARY:'+icsEsc('🩸 Қанд ўлчаш — овқатдан '+SLOT[x.min]+' ўтди'),'DESCRIPTION:'+icsEsc(MEALT[m.type].n+' '+hm(m.ts)+(m.name?' — '+m.name:'')),...alarm('🩸 Қанд ўлчаш вақти'),'END:VEVENT']);
+  if(!ev.length)return toast('Ўлчаш вақтлари ўтиб бўлган');icsFile('qand-eslatma.ics',ev);toast('📅 Юкланган файлни очиб, календарга қўшинг')}
+function icsFast(){const[h,mi]=(S.settings.fastTime||'07:00').split(':').map(Number),d=new Date(addD(sod(Date.now()),1));d.setHours(h||0,mi||0,0,0);
+  const loc=d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate())+'T'+pad(d.getHours())+pad(d.getMinutes())+'00';
+  icsFile('qand-nahorgi.ics',[['BEGIN:VEVENT','UID:qand-fasting-daily@qand','DTSTAMP:'+icsD(Date.now()),'DTSTART:'+loc,'DURATION:PT5M','RRULE:FREQ=DAILY','SUMMARY:'+icsEsc('🌅 Наҳорги қандни ўлчанг'),...alarm('🌅 Наҳорги қандни ўлчанг'),'END:VEVENT']]);toast('📅 Юкланган файлни очиб, календарга қўшинг')}
+function reportText(){const[s,e]=rangeOf(UI.sm,UI.sa),A=stats(s,e),B=stats(...prevOf(UI.sm,s)),u=U(),L=[`🩸 Қанд ҳисоботи — ${pLabel(UI.sm,s,e)}`,''];
+  L.push(`Ўлчовлар: ${A.n} та (${A.mDays} кунда)`);
+  if(A.avg!=null)L.push(`Ўртача қанд: ${fv(A.avg)} ${u}${B.avg!=null?` (олдинги давр: ${fv(B.avg)})`:''}`);
+  if(A.fastAvg!=null)L.push(`Наҳорги: ${fv(A.fastAvg)}${B.fastAvg!=null?` (олдинги давр: ${fv(B.fastAvg)})`:''}`);
+  POST.forEach(t=>{if(A.avgBy[t]!=null)L.push(`${TAGS[t].l}: ${fv(A.avgBy[t])}`)});
+  if(A.riseAvg!=null)L.push(`Овқатдан кейинги кўтарилиш (ўртача): ${fd(A.riseAvg)}`);
+  if(A.tir!=null)L.push(`Мақсад оралиғида: ${Math.round(A.tir)}%`);
+  L.push(`Паст (<${fv(S.settings.low)}): ${A.low} марта · Жуда юқори (≥${fv(S.settings.vhigh)}): ${A.vhigh} марта`);
+  if(A.kIn)L.push(`Калория: кунига ўртача ${fk(A.kInAvg)} ккал`);
+  if(A.SP.length)L.push(`Спорт: ${A.sDays} кун, ${A.sMin} дақиқа, ${fk(A.kOut)} ккал`);
+  if(A.unusualN)L.push(`Ноодатий овқатлар: ${A.unusualN} та`);
+  const e1=eA1c(A);if(UI.sm==='month'&&e1!=null)L.push(`Тахминий HbA1c: ${e1.toFixed(1)}% (ўлчовлардан ҳисобланган, фақат мўлжал)`);
+  L.push('','«Қанд назорати» иловаси');return L.join('\n')}
+async function shareReport(){const t=reportText();try{if(navigator.share){await navigator.share({title:'Қанд ҳисоботи',text:t});return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{await navigator.clipboard.writeText(t);toast('📋 Ҳисобот нусхаланди — Telegram’га қўйиб юборинг')}catch(e){openSheet(`<h2>📤 Ҳисобот</h2><textarea style="height:320px">${esc(t)}</textarea><button class="btn full" style="margin-top:12px" onclick="closeSheet()">Ёпиш</button>`)}}
+
+/* ================= Асосий ================= */
+function render(){const T={today:'Бугун',log:'Журнал',stats:'Таҳлил',set:'Созлама'};$('#ttl').textContent=T[UI.tab];$('#hdate').textContent=dLong(Date.now());
+  document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===UI.tab));
+  try{$('#main').innerHTML=({today:vToday,log:vLog,stats:vStats,set:vSet})[UI.tab]()}catch(e){console.error(e);$('#main').innerHTML=`<div class="alert bad">Хато: ${esc(e.message)}</div>`}}
+function tab(t){UI.tab=t;if(t==='stats'&&UI.sm==='day')UI.sa=Date.now();render();scrollTo(0,0)}
+let toastT;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2400)}
+let tipT;document.addEventListener('pointerdown',e=>{unlockAudio();const tip=$('#tip'),el=e.target&&e.target.closest?e.target.closest('[data-tip]'):null;if(!el){tip.classList.remove('on');return}
+  tip.textContent=el.getAttribute('data-tip');tip.classList.add('on');const r=tip.getBoundingClientRect();let x=e.clientX-r.width/2,y=e.clientY-r.height-16;
+  x=Math.max(8,Math.min(innerWidth-r.width-8,x));if(y<8)y=e.clientY+20;tip.style.left=x+'px';tip.style.top=y+'px';clearTimeout(tipT);tipT=setTimeout(()=>tip.classList.remove('on'),4000)},{passive:true});
+(function init(){if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{});
+  render();lastSig=allPend().map(p=>p.key+(p.overdue?1:0)).join(',');
+  const k=new URLSearchParams(location.search).get('k');if(k!==null){history.replaceState(null,'',location.pathname);setTimeout(()=>handleKey(k),300)}
+  tick();setInterval(tick,15000);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();if(!sheetOpen)render()}});
+  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!sheetOpen)render()},250)})})();
+</script>
+</body>
+</html>
