@@ -69,7 +69,7 @@ h4:first-of-type{margin-top:4px}
 .hv{font-size:56px;font-weight:700;line-height:1.05;letter-spacing:-1px}
 .hs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);text-align:center}
 .hs b{display:block;font-size:18px}.hs span{font-size:12px;color:var(--mut)}
-.qa{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.qa{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
 .qa button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 4px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--tx);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
 .qa button b{font-size:26px;font-weight:400;line-height:1}
 .qa button:active{transform:scale(.96)}
@@ -493,7 +493,7 @@ function vToday(){const now=Date.now(),t0=sod(now),t1=addD(t0,1),A=stats(t0,t1),
     <div style="margin-top:8px">${stTag(s)}<span class="tag">${TAGS[last.tag].i} ${TAGS[last.tag].l}</span>${m?`<span class="tag">${MEALT[m.type].i} ${MEALT[m.type].n} ${hm(m.ts)}</span>`:''}</div>
     ${A.n?`<div class="hs"><div><b>${fv(A.avg)}</b><span>бугун ўртача</span></div><div><b>${A.n}</b><span>ўлчов</span></div><div><b>${A.tir!=null?Math.round(A.tir)+'%':'—'}</b><span>мақсадда</span></div></div>`:''}</div>`}
   const P=allPend(now);if(P.length)h+=pendCard(P);
-  h+=`<div class="qa"><button onclick="openReading()"><b>🩸</b>Қанд</button><button onclick="openMeal()"><b>🍽</b>Овқат</button><button onclick="openSport()"><b>🏃</b>Спорт</button><button onclick="openMed()"><b>💊</b>Дори</button></div>`;
+  h+=`<div class="qa"><button onclick="openReading()"><b>🩸</b>Қанд</button><button onclick="openMeal()"><b>🍽</b>Овқат</button><button onclick="openSport()"><b>🏃</b>Спорт</button><button onclick="openMed()"><b>💊</b>Дори</button><button onclick="openBurn(sod(Date.now()))"><b>🔥</b>Сарф</button></div>`;
   if(!S.readings.length&&!S.meals.length)h+=`<div class="card"><h3>👋 Қандай ишлатилади?</h3><ol class="guide">
     <li><b>Эрталаб наҳорда</b> қандни ўлчаб, «🩸 Қанд» тугмаси орқали киритинг.</li>
     <li><b>Овқатланаётганда</b> «🍽 Овқат»ни босинг: нима еганингиз, калорияси, одатий ёки ноодатий эканини белгиланг. Илова 30 дақиқа, 1 соат ва 3 соатдан кейин ўлчашни эслатади.</li>
