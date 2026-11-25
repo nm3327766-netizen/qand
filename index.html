@@ -149,6 +149,13 @@ table.tg td+td{width:84px}
 #tip.on{opacity:1}
 .guide{margin:0;padding-left:20px;font-size:14px}
 .guide li{margin:7px 0}
+.fi{display:flex;gap:6px;align-items:center;padding:8px 10px;background:var(--card2);border-radius:12px;margin-top:6px}
+.fi .fq{width:54px;padding:7px 2px;text-align:center;font-weight:700}
+.fi .btn{min-width:38px}
+.nf{background:#0e1626;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:6px}
+.nf label{margin-top:8px}
+input[readonly]{opacity:.7}
+.chip .cn{display:inline-block;background:#04201d;color:var(--ac);border-radius:99px;padding:0 6px;margin-left:4px;font-size:12px}
 </style>
 </head>
 <body>
@@ -211,9 +218,12 @@ const C={blue:'#3987e5',orange:'#d95926',aqua:'#199e70',yellow:'#c98500',gray:'#
 const DEF_TG={fast:[4.4,7.2],pre:[4.4,7.2],p30:[3.9,10],p60:[3.9,10],p120:[3.9,10],p180:[3.9,7.8],spre:[3.9,10],spost:[3.9,10],bed:[4.4,10],other:[3.9,10]};
 
 function defSet(){return{unit:'mmol',src:'meter',remind:[30,60,180],tg:JSON.parse(JSON.stringify(DEF_TG)),low:3.9,vhigh:13.9,kcalGoal:0,weight:0,notif:true,sound:true,vibrate:true,fullAlert:true,dori:true,lastSport:'run',fastTime:'07:00',lastBackup:0}}
-function def(){return{v:1,readings:[],meals:[],sports:[],meds:[],tpl:[],medList:[],rem:[],settings:defSet()}}
+const FUNITS=['дона','порция','коса','бўлак','стакан','қошиқ','100 г'],HALF=['порция','коса','стакан','100 г'];
+// Бошланғич рўйхат (1 дона/порция учун: ккал, углевод г, шакар г) — тахминий, фойдаланувчи ўзгартиради
+const DEF_FOODS=[['Тухум (қайнатилган)','дона',75,0.5,0.5],['Товуқ оёқчаси','дона',160,0,0],['Нон (1/4 та)','бўлак',190,37,2],['Палов','порция',600,65,3],['Мастава','коса',320,35,4],['Шўрва','коса',300,15,3],['Лағмон','порция',550,70,5],['Манти','дона',90,9,0.5],['Сомса','дона',300,28,1],['Олма','дона',80,21,16],['Чой (шакарсиз)','стакан',2,0,0],['Шакар','қошиқ',20,5,5]];
+function def(){return{v:1,readings:[],meals:[],sports:[],meds:[],tpl:[],medList:[],rem:[],foods:DEF_FOODS.map((a,i)=>({id:'f'+i,name:a[0],unit:a[1],kcal:a[2],carbs:a[3],sugar:a[4],n:0})),settings:defSet()}}
 function norm(d){const b=def(),o={...b,...d};o.settings={...b.settings,...(d.settings||{})};o.settings.tg={...b.settings.tg,...((d.settings||{}).tg||{})};
-  ['readings','meals','sports','meds','tpl','medList','rem'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});
+  ['readings','meals','sports','meds','tpl','medList','rem','foods'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});
   if(!Array.isArray(o.settings.remind))o.settings.remind=[30,60,180];
   o.rem=o.rem.filter(r=>!r.done&&Date.now()-r.due<DAY);return o}
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.readings))return norm(d)}catch(e){}return def()}
@@ -256,6 +266,7 @@ const fd=d=>{if(d==null||isNaN(d))return'—';const x=qv(d);if(x===0)return'0';r
 const num=s=>{s=String(s??'').trim().replace(',','.').replace(/\s/g,'');return s===''?NaN:Number(s)};
 const mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const sum=a=>a.reduce((x,y)=>x+(+y||0),0);
+const r1=x=>Math.round((+x||0)*10)/10;
 const fk=k=>k==null||isNaN(k)?'—':Math.round(k).toLocaleString('ru-RU');
 const inR=(a,s,e)=>a.filter(x=>x.ts>=s&&x.ts<e);
 const okV=v=>isFinite(v)&&v>=1&&v<=35;
@@ -433,7 +444,7 @@ function mealRow(m){const c=curve(m),after=S.sports.find(s=>s.ts>m.ts&&s.ts<=m.t
   if(after)info.push('🏃 овқатдан '+dur(after.ts-m.ts)+' кейин спорт');
   const show120=c.p120||S.settings.remind.includes(120);
   return`<div class="ml" onclick="openMeal('${m.id}')"><div class="row"><b>${MEALT[m.type].i} ${MEALT[m.type].n} · ${hm(m.ts)}</b>${m.unusual?'<span class="tag warn">⚡ Ноодатий</span>':'<span class="tag">Одатий</span>'}</div>
-  ${m.name||m.kcal?`<div class="mut">${[esc(m.name||''),m.kcal?fk(m.kcal)+' ккал':'',m.carbs?m.carbs+' г углевод':''].filter(Boolean).join(' · ')}</div>`:''}
+  ${m.name||m.kcal?`<div class="mut">${[esc(m.name||''),m.kcal?fk(m.kcal)+' ккал':'',m.carbs?r1(m.carbs)+' г углевод':'',m.sugar?r1(m.sugar)+' г шакар':''].filter(Boolean).join(' · ')}</div>`:''}
   <div class="cvs">${cell('Олдин',c.pre)}${cell('30 дақ',c.p30)}${cell('1 соат',c.p60)}${show120?cell('2 соат',c.p120):''}${cell('3 соат',c.p180)}</div>
   ${info.length?`<div class="mut" style="margin-top:6px;font-size:13px">${info.join(' · ')}</div>`:''}</div>`}
 function sportRow(x){const rs=S.readings.filter(r=>r.sportId===x.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost'),sp=SPORTS[x.type]||SPORTS.other;
@@ -447,10 +458,10 @@ function itemHtml(it){const o=it.o;
   if(it.k==='s'){const sp=SPORTS[o.type]||SPORTS.other;return`<div class="it" onclick="openSport('${o.id}')"><span class="t">${hm(o.ts)}</span><span class="i">${sp.i}</span><div class="sp"><b>${sp.n}</b> <span class="mut">${o.dur?o.dur+' дақ':''}</span></div><span class="mut">${o.kcal?'−'+fk(o.kcal)+' ккал':''}</span></div>`}
   return`<div class="it" ${o.src==='own'?`onclick="openMed('${o.id}')"`:'style="cursor:default"'}><span class="t">${hm(o.ts)}</span><span class="i">💊</span><div class="sp"><b>${esc(o.name)}</b> <span class="mut">${esc(o.dose||'')}${o.src==='dori'?' · «Дори вақти»дан':''}</span></div></div>`}
 const kc=(l,v)=>`<div><div class="mut" style="font-size:12px">${l}</div><div class="kv">${v}</div></div>`;
-function kcalCard(A){if(!A.M.length&&!A.SP.length)return'';const goal=S.settings.kcalGoal,carbs=sum(A.M.map(m=>m.carbs||0));
+function kcalCard(A){if(!A.M.length&&!A.SP.length)return'';const goal=S.settings.kcalGoal,carbs=r1(sum(A.M.map(m=>m.carbs||0))),sug=r1(sum(A.M.map(m=>m.sugar||0)));
   let h=`<div class="card"><h3>🔥 Калория (ккал)</h3><div class="g3 kc">${kc('Истеъмол',fk(A.kIn))}${kc('Спорт сарфи',fk(A.kOut))}${kc('Фарқи',fk(A.kIn-A.kOut))}</div>`;
   if(goal)h+=`<div class="pb"><i style="width:${Math.min(100,A.kIn/goal*100)}%;${A.kIn>goal?'background:var(--warn)':''}"></i></div><div class="mut" style="font-size:13px;margin-top:4px">Кунлик мақсад: ${fk(goal)} ккал · ${A.kIn>goal?'мақсаддан '+fk(A.kIn-goal)+' ортиқ':fk(goal-A.kIn)+' қолди'}</div>`;
-  if(carbs)h+=`<div class="mut" style="font-size:13px;margin-top:4px">Углевод: ${carbs} г</div>`;return h+'</div>'}
+  if(carbs||sug)h+=`<div class="mut" style="font-size:13px;margin-top:4px">Углевод: ${carbs} г · Шакар: ${sug} г</div>`;return h+'</div>'}
 function warnCard(r){const s=st(r.v,r.tag);
   if(s==='low')return`<div class="alert bad">⚠️ <b>Қанд паст: ${fv(r.v)} ${U()}</b> (${hm(r.ts)})<br>Тез сўриладиган углевод истеъмол қилинг (масалан, ярим стакан мева шарбати ёки 3–4 бўлак қанд) ва 15 дақиқадан кейин қайта ўлчанг. Тез-тез такрорланса, шифокорингизга айтинг.<div style="margin-top:8px"><button class="btn sm" onclick="addRecheck(15)">⏰ 15 дақдан кейин эслат</button></div></div>`;
   if(s==='vhigh')return`<div class="alert bad">‼️ <b>Қанд жуда юқори: ${fv(r.v)} ${U()}</b> (${hm(r.ts)})<br>Сув ичинг ва 1–2 соатдан кейин қайта ўлчанг. Юқори қанд такрорланса ёки ўзингизни ёмон ҳис қилсангиз, шифокорга мурожаат қилинг.<div style="margin-top:8px"><button class="btn sm" onclick="addRecheck(90)">⏰ 1.5 соатдан кейин эслат</button></div></div>`;
@@ -634,7 +645,7 @@ function vSet(){const s=S.settings,perm='Notification'in window?Notification.per
   <label>🌅 Ҳар куни эрталаб наҳорги ўлчовни эслатиш</label><div class="row"><input type="time" value="${s.fastTime}" onchange="S.settings.fastTime=this.value;save()" style="flex:1"><button class="btn sm" onclick="icsFast()">📅 Календарга</button></div></div>`;
   h+=`<div class="card"><h3>🔥 Калория</h3><div class="g2"><div><label>Кунлик калория мақсади</label><input inputmode="numeric" value="${s.kcalGoal||''}" placeholder="масалан 2200" onchange="S.settings.kcalGoal=Math.max(0,Math.round(num(this.value)||0));save()"></div>
   <div><label>Вазнингиз (кг)</label><input inputmode="decimal" value="${s.weight||''}" placeholder="масалан 85" onchange="S.settings.weight=Math.max(0,num(this.value)||0);save()"></div></div><div class="mut" style="font-size:13px;margin-top:6px">Вазн — спорт калориясини тахминий ҳисоблаш учун (браслет ёки соат бўлмаганда).</div></div>`;
-  h+=`<div class="card"><h3>⭐ Тез танлаш таомлари</h3>${S.tpl.length?S.tpl.slice().sort((a,b)=>(b.n||0)-(a.n||0)).map(t=>`<div class="it" onclick="openTpl('${t.id}')"><span class="i">🍽</span><div class="sp"><b>${esc(t.name)}</b><div class="mut">${t.kcal?fk(t.kcal)+' ккал':'калория киритилмаган'}${t.carbs?' · '+t.carbs+' г углевод':''}${t.n?' · '+t.n+' марта':''}</div></div><span class="mut">✏️</span></div>`).join(''):'<div class="mut">Ҳали йўқ. Овқат киритишда «⭐ Тез танлашга сақлаш»ни белгиланг ёки шу ерда қўшинг.</div>'}<button class="btn full" style="margin-top:10px" onclick="openTpl()">＋ Таом қўшиш</button></div>`;
+  h+=`<div class="card"><h3>🥗 Таомлар рўйхати</h3><div class="mut" style="font-size:13px">Ҳар бир таомнинг <b>1 донаси ёки 1 порцияси</b> учун калория, углевод ва шакар. Овқат киритганда фақат сонини белгилайсиз — жамини илова ўзи ҳисоблайди. Бошланғич рақамлар тахминий: ўзингизникига тўғрилаб олинг.</div>${S.foods.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(f=>`<div class="it" onclick="openFood('${f.id}')"><span class="i">🍽</span><div class="sp"><b>${esc(f.name)}</b><div class="mut">1 ${f.unit}: ${f.kcal} ккал · ${f.carbs} г углевод · ${f.sugar} г шакар</div></div><span class="mut">✏️</span></div>`).join('')}<button class="btn full" style="margin-top:10px" onclick="openFood()">＋ Таом қўшиш</button></div>`;
   h+=`<div class="card"><h3>💊 Дорилар</h3>${S.medList.map(m=>`<div class="it" style="cursor:default"><span class="i">💊</span><div class="sp"><b>${esc(m.name)}</b> <span class="mut">${esc(m.dose||'')}</span></div><button class="btn sm bad" onclick="delMedL('${m.id}')" aria-label="Ўчириш">🗑</button></div>`).join('')}
   <button class="btn full" style="margin-top:8px" onclick="openMedL()">＋ Рўйхатга дори қўшиш</button>${swi('dori','🔗 «Дори вақти» иловасидан олиш',doriInfo())}</div>`;
   h+=`<div class="card"><h3>💾 Захира нусха</h3><div class="mut">Телефон алмашса ёки браузер тозаланса, маълумот йўқолмаслиги учун вақти-вақти билан сақлаб қўйинг.${s.lastBackup?' Охирги марта: '+dLabel(s.lastBackup)+'.':''}</div>
@@ -709,32 +720,53 @@ function delReading(){if(!confirm('Бу ўлчов ўчирилсинми?'))ret
 
 /* --- Овқат --- */
 const mealByTime=ts=>{const h=new Date(ts).getHours();return h>=4&&h<11?'b':h>=11&&h<16?'l':h>=16&&h<22?'d':'s'};
-function openMeal(id){const m=id?getM(id):null,ts=m?m.ts:Date.now(),c=m?curve(m):null,tp=S.tpl.slice().sort((a,b)=>(b.n||0)-(a.n||0)).slice(0,12);
-  F={k:'m',id:m?m.id:null,type:m?m.type:mealByTime(ts),unusual:m?!!m.unusual:false};
+function foodChips(){return S.foods.slice().sort((a,b)=>(b.n||0)-(a.n||0)||a.name.localeCompare(b.name)).map(f=>{const it=F.items.find(x=>x.fid===f.id);return`<button class="chip${it?' on':''}" onclick="addItem('${f.id}')">${esc(f.name)}${it?`<span class="cn">${it.q}</span>`:''}</button>`}).join('')}
+const totI=a=>a.reduce((t,x)=>({k:t.k+x.kcal*x.q,c:t.c+x.carbs*x.q,s:t.s+x.sugar*x.q}),{k:0,c:0,s:0});
+function drawItems(){const el=$('#f_items');if(!el)return;const it=F.items;$('#f_fc').innerHTML=foodChips();
+  el.innerHTML=it.map((x,i)=>`<div class="fi"><div class="sp"><b>${esc(x.name)}</b><div class="mut" style="font-size:12px">${Math.round(x.kcal*x.q)} ккал · ${r1(x.carbs*x.q)} г угл. · ${r1(x.sugar*x.q)} г шакар</div></div><button class="btn sm" onclick="qItem(${i},-1)">−</button><input class="fq" inputmode="decimal" value="${x.q}" onchange="setQ(${i},this.value)"><button class="btn sm" onclick="qItem(${i},1)">＋</button><span class="mut" style="font-size:12px;min-width:44px">${x.unit}</span></div>`).join('');
+  const ro=it.length>0;['#f_kcal','#f_carbs','#f_sugar'].forEach(q=>$(q).readOnly=ro);
+  if(ro){const t=totI(it);$('#f_kcal').value=Math.round(t.k);$('#f_carbs').value=r1(t.c);$('#f_sugar').value=r1(t.s);$('#f_auto').textContent='↑ Жами таркибдан ўзи ҳисобланди'}
+  else{if(F.wasItems){['#f_kcal','#f_carbs','#f_sugar'].forEach(q=>$(q).value='')}$('#f_auto').textContent=''}F.wasItems=ro}
+function addItem(fid){const f=S.foods.find(x=>x.id===fid);if(!f)return;const it=F.items.find(x=>x.fid===fid);
+  if(it)it.q=Math.round((it.q+1)*100)/100;else F.items.push({fid,name:f.name,unit:f.unit,q:1,kcal:+f.kcal||0,carbs:+f.carbs||0,sugar:+f.sugar||0});drawItems()}
+function qItem(i,d){const x=F.items[i];if(!x)return;x.q=Math.round((x.q+d*(HALF.includes(x.unit)?.5:1))*100)/100;if(x.q<=0)F.items.splice(i,1);drawItems()}
+function setQ(i,v){const q=num(v);if(isFinite(q)&&q>0)F.items[i].q=q;else F.items.splice(i,1);drawItems()}
+function nfToggle(){const e=$('#f_nf');e.style.display=e.style.display==='none'?'block':'none'}
+function foodFields(f){return`<label>Таом номи</label><input id="nf_name" value="${esc(f&&f.name||'')}" placeholder="масалан: Қовурдоқ">
+  <div class="g2"><div><label>Ўлчов бирлиги</label><select id="nf_unit">${FUNITS.map(u=>`<option${(f?f.unit:'порция')===u?' selected':''}>${u}</option>`).join('')}</select></div><div><label>Калория (1 та учун)</label><input id="nf_kcal" inputmode="decimal" value="${f?f.kcal:''}" placeholder="ккал"></div></div>
+  <div class="g2"><div><label>Углевод, г</label><input id="nf_carbs" inputmode="decimal" value="${f?f.carbs:''}" placeholder="0"></div><div><label>Шакар, г</label><input id="nf_sugar" inputmode="decimal" value="${f?f.sugar:''}" placeholder="0"></div></div>`}
+function readFood(){const name=$('#nf_name').value.trim(),k=num($('#nf_kcal').value);if(!name){toast('Таом номини киритинг');return null}if(!isFinite(k)||k<0){toast('Калорияни киритинг');return null}
+  const c=num($('#nf_carbs').value),sg=num($('#nf_sugar').value);return{name,unit:$('#nf_unit').value,kcal:r1(k),carbs:isFinite(c)?r1(c):0,sugar:isFinite(sg)?r1(sg):0}}
+function nfAdd(){const o=readFood();if(!o)return;const f={id:uid(),n:0,...o};S.foods.push(f);save();$('#f_nf').innerHTML=foodFields()+'<button class="btn p full" style="margin-top:10px" onclick="nfAdd()">＋ Рўйхатга қўшиш ва танлаш</button>';$('#f_nf').style.display='none';addItem(f.id);toast('✅ '+f.name+' рўйхатга қўшилди')}
+function openMeal(id){const m=id?getM(id):null,ts=m?m.ts:Date.now(),c=m?curve(m):null;
+  F={k:'m',id:m?m.id:null,type:m?m.type:mealByTime(ts),unusual:m?!!m.unusual:false,items:m&&m.items?m.items.map(x=>({...x})):[]};
   openSheet(`<h2>${m?'✏️ Овқатни таҳрирлаш':'🍽 Овқат'}</h2>
   <label>Овқат тури</label><div class="chips" id="f_type">${Object.entries(MEALT).map(([k,o])=>`<button class="chip${F.type===k?' on':''}" data-v="${k}" onclick="F.type='${k}';selChip('#f_type','${k}')">${o.i} ${o.n}</button>`).join('')}</div>
   <label>Бу овқат...</label><div class="chips" id="f_us"><button class="chip${!F.unusual?' on':''}" data-v="0" onclick="F.unusual=false;selChip('#f_us','0')">✅ Одатий</button><button class="chip${F.unusual?' on':''}" data-v="1" onclick="F.unusual=true;selChip('#f_us','1')">⚡ Ноодатий</button></div>
   <div class="mut" style="font-size:12px;margin-top:5px">Ноодатий — тўй, меҳмондорчилик, ширинлик, ҳаддан ташқари кўп ёки кечаси овқатланиш ва ҳ.к.</div>
-  ${tp.length?`<label>⭐ Тез танлаш</label><div class="chips">${tp.map(t=>`<button class="chip" onclick="useTpl('${t.id}')">${esc(t.name)}${t.kcal?' · '+t.kcal:''}</button>`).join('')}</div>`:''}
-  <label>Нима едингиз?</label><input id="f_name" value="${esc(m&&m.name||'')}" placeholder="масалан: палов, салат, нон, чой">
-  <div class="g2"><div><label>Калория (ккал)</label><input id="f_kcal" inputmode="numeric" value="${m&&m.kcal!=null?m.kcal:''}" placeholder="масалан 650"></div><div><label>Углевод, г (ихтиёрий)</label><input id="f_carbs" inputmode="numeric" value="${m&&m.carbs!=null?m.carbs:''}" placeholder="—"></div></div>
+  <label>Нима едингиз? Таомни босинг — яна боссангиз, сони ошади</label><div class="chips" id="f_fc"></div>
+  <div id="f_items"></div>
+  <button class="lnk" onclick="nfToggle()">＋ Рўйхатда йўқ таомни қўшиш</button>
+  <div class="nf" id="f_nf" style="display:none">${foodFields()}<button class="btn p full" style="margin-top:10px" onclick="nfAdd()">＋ Рўйхатга қўшиш ва танлаш</button></div>
+  <div class="g3"><div><label>Калория</label><input id="f_kcal" inputmode="numeric" value="${m&&m.kcal!=null?m.kcal:''}" placeholder="ккал"></div><div><label>Углевод, г</label><input id="f_carbs" inputmode="decimal" value="${m&&m.carbs!=null?m.carbs:''}" placeholder="—"></div><div><label>Шакар, г</label><input id="f_sugar" inputmode="decimal" value="${m&&m.sugar!=null?m.sugar:''}" placeholder="—"></div></div>
+  <div class="mut" id="f_auto" style="font-size:12px;margin-top:4px"></div>
+  <label>Овқат номи (ихтиёрий)</label><input id="f_name" value="${esc(m&&!m.autoName&&m.name||'')}" placeholder="бўш қолса, таомлардан ўзи ёзилади">
   <label>Овқатни бошлаган вақтингиз</label><input type="datetime-local" id="f_ts" value="${tsIn(ts)}">
   ${m?(c.pre?`<div class="mut" style="margin-top:10px">Овқатдан олдинги қанд: <b style="color:var(--tx)">${fv(c.pre.v)}</b> ${U()}</div>`:''):`<label>Овқатдан олдинги қанд (ихтиёрий)</label><div class="vin sm" style="margin-top:0"><input id="f_pre" inputmode="decimal" placeholder="—"><span>${U()}</span></div>`}
   <div class="sw" style="margin-top:8px"><div>⏰ Ўлчашни эслатиш<div class="mut">${S.settings.remind.length?S.settings.remind.map(x=>SLOT[x]).join(', ')+' кейин':'Созламада вақт танланмаган'}</div></div><input type="checkbox" id="f_rem" ${m&&m.noRem?'':'checked'}></div>
-  <div class="sw"><div>⭐ Тез танлашга сақлаш<div class="mut">Кейинги сафар бир босишда киритилади</div></div><input type="checkbox" id="f_tpl"></div>
   <label>Изоҳ (ихтиёрий)</label><input id="f_note" value="${esc(m&&m.note||'')}">
-  ${btns('saveMeal',m?'delMeal':'')}`)}
-function useTpl(id){const t=S.tpl.find(x=>x.id===id);if(!t)return;$('#f_name').value=t.name;$('#f_kcal').value=t.kcal!=null?t.kcal:'';$('#f_carbs').value=t.carbs!=null?t.carbs:''}
-function saveMeal(){const name=$('#f_name').value.trim(),k=num($('#f_kcal').value),cb=num($('#f_carbs').value),ts=tsOut(),old=F.id?getM(F.id):null;
-  const o={id:F.id||uid(),ts,type:F.type,name,kcal:isFinite(k)?Math.round(k):null,carbs:isFinite(cb)?Math.round(cb):null,unusual:!!F.unusual,note:$('#f_note').value.trim(),noRem:!$('#f_rem').checked,fired:{...(old&&old.fired||{})}};
+  ${btns('saveMeal',m?'delMeal':'')}`);F.wasItems=false;drawItems()}
+function saveMeal(){const items=F.items.filter(x=>x.q>0),t=items.length?totI(items):null,typed=$('#f_name').value.trim(),ts=tsOut(),old=F.id?getM(F.id):null;
+  const k=t?t.k:num($('#f_kcal').value),cb=t?t.c:num($('#f_carbs').value),sg=t?t.s:num($('#f_sugar').value);
+  const auto=items.map(x=>x.name+(x.q!==1?' ×'+x.q:'')).join(', ');
+  const o={id:F.id||uid(),ts,type:F.type,name:typed||auto,autoName:!typed&&!!auto,items:items.length?items:null,kcal:isFinite(k)?Math.round(k):null,carbs:isFinite(cb)?r1(cb):null,sugar:isFinite(sg)?r1(sg):null,unusual:!!F.unusual,note:$('#f_note').value.trim(),noRem:!$('#f_rem').checked,fired:{...(old&&old.fired||{})}};
   S.settings.remind.forEach(min=>{if(ts+min*MIN<Date.now()-5*MIN&&!o.fired['p'+min])o.fired['p'+min]=Date.now()});
-  if(old)Object.assign(old,o);else S.meals.push(o);
+  if(old)Object.assign(old,o);else{S.meals.push(o);items.forEach(x=>{const f=S.foods.find(y=>y.id===x.fid);if(f)f.n=(f.n||0)+1})}
   const pv=num($('#f_pre')?$('#f_pre').value:'');
   if(isFinite(pv)&&okV(fromU(pv))){const d0=sod(ts),fd0=S.readings.some(r=>r.tag==='fast'&&sod(r.ts)===d0);S.readings.push({id:uid(),ts:ts-MIN,v:fromU(pv),tag:o.type==='b'&&!fd0&&new Date(ts).getHours()<12?'fast':'pre',mealId:o.id,src:S.settings.src})}
   S.readings.forEach(r=>{if(r.mealId)return;if((r.tag==='fast'||r.tag==='pre')&&r.ts<=ts+5*MIN&&ts-r.ts<=90*MIN)r.mealId=o.id;else if(POST.includes(r.tag)&&r.ts>ts&&r.ts-ts<=4*HOUR)r.mealId=o.id});
-  if(name){const t=S.tpl.find(x=>x.name.toLowerCase()===name.toLowerCase());if($('#f_tpl').checked){if(t){t.kcal=o.kcal;t.carbs=o.carbs;t.n=(t.n||0)+(old?0:1)}else S.tpl.push({id:uid(),name,kcal:o.kcal,carbs:o.carbs,n:1})}else if(t&&!old)t.n=(t.n||0)+1}
   save();closeSheet();if(!old)UI.tab='today';render();
-  toast(old||o.noRem||!S.settings.remind.length?'✅ Сақланди':'✅ Сақланди. '+S.settings.remind.map(x=>SLOT[x]).join(', ')+'дан кейин эслатаман');
+  toast((o.kcal!=null?'✅ '+fk(o.kcal)+' ккал. ':'✅ Сақланди. ')+(old||o.noRem||!S.settings.remind.length?'':S.settings.remind.map(x=>SLOT[x]).join(', ')+'дан кейин эслатаман'));
   if(!old&&!o.noRem&&S.settings.notif&&'Notification'in window&&Notification.permission==='default')setTimeout(askPerm,400)}
 function delMeal(){if(!confirm('Овқат ўчирилсинми? Унга боғланган қанд ўлчовлари сақланиб қолади.'))return;S.meals=S.meals.filter(m=>m.id!==F.id);S.readings.forEach(r=>{if(r.mealId===F.id)delete r.mealId});save();closeSheet();render();toast('🗑 Ўчирилди')}
 
@@ -781,14 +813,10 @@ function saveMedL(){const name=$('#f_name').value.trim();if(!name)return toast('
 function delMedL(id){S.medList=S.medList.filter(x=>x.id!==id);save();render()}
 
 /* --- Тез танлаш таоми --- */
-function openTpl(id){const t=id?S.tpl.find(x=>x.id===id):null;F={k:'t',id:t?t.id:null};
-  openSheet(`<h2>⭐ Таом</h2><label>Номи</label><input id="f_name" value="${esc(t&&t.name||'')}" placeholder="масалан: Тухум, нон, чой">
-  <div class="g2"><div><label>Калория (ккал)</label><input id="f_kcal" inputmode="numeric" value="${t&&t.kcal!=null?t.kcal:''}"></div><div><label>Углевод (г)</label><input id="f_carbs" inputmode="numeric" value="${t&&t.carbs!=null?t.carbs:''}"></div></div>
-  ${btns('saveTpl',t?'delTpl':'')}`)}
-function saveTpl(){const name=$('#f_name').value.trim();if(!name)return toast('Номини киритинг');const k=num($('#f_kcal').value),c=num($('#f_carbs').value);
-  const o={name,kcal:isFinite(k)?Math.round(k):null,carbs:isFinite(c)?Math.round(c):null},t=F.id&&S.tpl.find(x=>x.id===F.id);
-  if(t)Object.assign(t,o);else S.tpl.push({id:uid(),n:0,...o});save();closeSheet();render();toast('✅ Сақланди')}
-function delTpl(){S.tpl=S.tpl.filter(x=>x.id!==F.id);save();closeSheet();render()}
+function openFood(id){const f=id?S.foods.find(x=>x.id===id):null;F={k:'f',id:f?f.id:null};
+  openSheet(`<h2>🥗 Таом</h2><div class="mut" style="font-size:13px">Рақамлар — 1 дона ёки 1 порция учун.</div>${foodFields(f)}${btns('saveFood',f?'delFood':'')}`)}
+function saveFood(){const o=readFood();if(!o)return;const f=F.id&&S.foods.find(x=>x.id===F.id);if(f)Object.assign(f,o);else S.foods.push({id:uid(),n:0,...o});save();closeSheet();render();toast('✅ Сақланди')}
+function delFood(){if(!confirm('Таом рўйхатдан ўчирилсинми? Аввалги ёзувлар ўзгармайди.'))return;S.foods=S.foods.filter(x=>x.id!==F.id);save();closeSheet();render()}
 
 /* ================= Экспорт / импорт ================= */
 function dl(name,data,type){const b=data instanceof Blob?data:new Blob([data],{type});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},2000)}
@@ -824,7 +852,7 @@ function exportXlsx(){if(!S.readings.length&&!S.meals.length)return toast('Ҳа�
   const days=[...new Set([...R,...M,...SP].map(x=>dk(x.ts)))].sort();
   const s1=[['Сана','Наҳорги ('+u+')','Ўртача','Энг юқори','Ўлчовлар','Мақсадда, %','Калория','Спорт, ккал','Спорт, дақ'],...days.map(k=>{const p=k.split('-').map(Number),s=new Date(p[0],p[1]-1,p[2]).getTime(),A=stats(s,addD(s,1));return[k,nv(fastOf(s)),nv(A.avg),nv(A.max),A.n||'',A.tir!=null?Math.round(A.tir):'',A.kIn||'',A.kOut||'',A.sMin||'']})];
   const s2=[['Сана','Вақт','Қанд ('+u+')','Ўлчов','Ҳолат','Овқат','Восита','Изоҳ'],...R.map(r=>{const m=r.mealId&&getM(r.mealId);return[dk(r.ts),hm(r.ts),nv(r.v),TAGS[r.tag].l,STL[st(r.v,r.tag)][1],m?MEALT[m.type].n+' '+hm(m.ts):'',r.src==='cgm'?'Сенсор':'Глюкометр',r.note||'']})];
-  const s3=[['Сана','Вақт','Тури','Таом','Калория','Углевод, г','Одатий/Ноодатий','Олдин','30 дақ','1 соат','2 соат','3 соат','Кўтарилиш','Изоҳ'],...M.map(m=>{const c=curve(m);return[dk(m.ts),hm(m.ts),MEALT[m.type].n,m.name||'',m.kcal??'',m.carbs??'',m.unusual?'Ноодатий':'Одатий',nv(c.pre&&c.pre.v),nv(c.p30&&c.p30.v),nv(c.p60&&c.p60.v),nv(c.p120&&c.p120.v),nv(c.p180&&c.p180.v),nv(c.rise),m.note||'']})];
+  const s3=[['Сана','Вақт','Тури','Таом','Калория','Углевод, г','Шакар, г','Одатий/Ноодатий','Олдин','30 дақ','1 соат','2 соат','3 соат','Кўтарилиш','Изоҳ'],...M.map(m=>{const c=curve(m);return[dk(m.ts),hm(m.ts),MEALT[m.type].n,m.name||'',m.kcal??'',m.carbs??'',m.sugar??'',m.unusual?'Ноодатий':'Одатий',nv(c.pre&&c.pre.v),nv(c.p30&&c.p30.v),nv(c.p60&&c.p60.v),nv(c.p120&&c.p120.v),nv(c.p180&&c.p180.v),nv(c.rise),m.note||'']})];
   const s4=[['Сана','Вақт','Тури','Давомийлик, дақ','Калория','Жадаллик','Олдин','Кейин','Фарқ','Изоҳ'],...SP.map(x=>{const rs=S.readings.filter(r=>r.sportId===x.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost');return[dk(x.ts),hm(x.ts),(SPORTS[x.type]||SPORTS.other).n,x.dur??'',x.kcal??'',INT[x.inten||2].n,nv(a&&a.v),nv(b&&b.v),a&&b?nv(b.v-a.v):'',x.note||'']})];
   const s5=[['Сана','Вақт','Дори','Доза','Манба'],...medEvents(0,Date.now()+DAY).map(x=>[dk(x.ts),hm(x.ts),x.name,x.dose||'',x.src==='dori'?'«Дори вақти»':'Қўлда'])];
   dl('qand-nazorati-'+dk(Date.now())+'.xlsx',xlsx([{name:'Кунлар',rows:s1},{name:'Қанд',rows:s2},{name:'Овқат',rows:s3},{name:'Спорт',rows:s4},{name:'Дори',rows:s5}]));toast('📊 Excel файл тайёр')}
