@@ -897,8 +897,8 @@ let tipT;document.addEventListener('pointerdown',e=>{unlockAudio();const tip=$('
   render();lastSig=allPend().map(p=>p.key+(p.overdue?1:0)).join(',');
   const k=new URLSearchParams(location.search).get('k');if(k!==null){history.replaceState(null,'',location.pathname);setTimeout(()=>handleKey(k),300)}
   tick();setInterval(tick,15000);
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();if(!sheetOpen)render()}});
-  let rt;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(!sheetOpen)render()},250)})})();
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){tick();const a=document.activeElement;if(!sheetOpen&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)))render()}});
+  let rt,lw=innerWidth;addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>{if(Math.abs(innerWidth-lw)<40)return;lw=innerWidth;const a=document.activeElement;if(!sheetOpen&&!(a&&/INPUT|SELECT|TEXTAREA/.test(a.tagName)))render()},250)})})();
 </script>
 </body>
 </html>
