@@ -69,9 +69,9 @@ h4:first-of-type{margin-top:4px}
 .hv{font-size:56px;font-weight:700;line-height:1.05;letter-spacing:-1px}
 .hs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);text-align:center}
 .hs b{display:block;font-size:18px}.hs span{font-size:12px;color:var(--mut)}
-.qa{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:12px}
-.qa button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 4px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--tx);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer}
-.qa button b{font-size:26px;font-weight:400;line-height:1}
+.qa{display:grid;grid-template-columns:repeat(6,1fr);gap:5px;margin-bottom:12px}
+.qa button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 2px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--tx);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer}
+.qa button b{font-size:24px;font-weight:400;line-height:1}
 .qa button:active{transform:scale(.96)}
 .pend{display:flex;gap:8px;align-items:center;padding:10px;border-radius:12px;background:var(--card2);margin-top:8px}
 .pend.due{box-shadow:0 0 0 2px var(--warn) inset}
@@ -159,6 +159,11 @@ table.tg td+td{width:84px}
 .nf label{margin-top:8px}
 input[readonly]{opacity:.7}
 .chip .cn{display:inline-block;background:#04201d;color:var(--ac);border-radius:99px;padding:0 6px;margin-left:4px;font-size:12px}
+/* Вазн ва ҳақиқий сарф */
+.wv{font-size:34px;font-weight:700;line-height:1.1;letter-spacing:-.5px}
+.kc .kv small{font-size:13px;font-weight:400;color:var(--mut)}
+.tdx{font-size:13px;color:var(--mut);margin-top:8px;line-height:1.5}
+.tdx b{color:var(--tx)}
 </style>
 </head>
 <body>
@@ -224,11 +229,12 @@ function defSet(){return{unit:'mmol',src:'meter',remind:[30,60,180],tg:JSON.pars
 const FUNITS=['дона','порция','коса','бўлак','стакан','қошиқ','100 г'],HALF=['порция','коса','стакан','100 г'];
 // Бошланғич рўйхат (1 дона/порция учун: ккал, углевод г, шакар г) — тахминий, фойдаланувчи ўзгартиради
 const DEF_FOODS=[['Тухум (қайнатилган)','дона',75,0.5,0.5],['Товуқ оёқчаси','дона',160,0,0],['Нон (1/4 та)','бўлак',190,37,2],['Палов','порция',600,65,3],['Мастава','коса',320,35,4],['Шўрва','коса',300,15,3],['Лағмон','порция',550,70,5],['Манти','дона',90,9,0.5],['Сомса','дона',300,28,1],['Олма','дона',80,21,16],['Чой (шакарсиз)','стакан',2,0,0],['Шакар','қошиқ',20,5,5]];
-function def(){return{v:1,readings:[],meals:[],sports:[],meds:[],tpl:[],medList:[],rem:[],burn:{},foods:DEF_FOODS.map((a,i)=>({id:'f'+i,name:a[0],unit:a[1],kcal:a[2],carbs:a[3],sugar:a[4],n:0})),settings:defSet()}}
+function def(){return{v:1,readings:[],meals:[],sports:[],meds:[],tpl:[],medList:[],rem:[],burn:{},wt:{},foods:DEF_FOODS.map((a,i)=>({id:'f'+i,name:a[0],unit:a[1],kcal:a[2],carbs:a[3],sugar:a[4],n:0})),settings:defSet()}}
 function norm(d){const b=def(),o={...b,...d};o.settings={...b.settings,...(d.settings||{})};o.settings.tg={...b.settings.tg,...((d.settings||{}).tg||{})};
   ['readings','meals','sports','meds','tpl','medList','rem','foods'].forEach(k=>{if(!Array.isArray(o[k]))o[k]=[]});
   if(!Array.isArray(o.settings.remind))o.settings.remind=[30,60,180];
   if(!o.burn||typeof o.burn!=='object'||Array.isArray(o.burn))o.burn={};
+  if(!o.wt||typeof o.wt!=='object'||Array.isArray(o.wt))o.wt={};for(const k in o.wt){const v=+o.wt[k];if(!(v>=30&&v<=250))delete o.wt[k]}
   o.rem=o.rem.filter(r=>!r.done&&Date.now()-r.due<DAY);return o}
 function load(){try{const d=JSON.parse(localStorage.getItem(KEY));if(d&&Array.isArray(d.readings))return norm(d)}catch(e){}return def()}
 let S=load();
@@ -307,12 +313,72 @@ function stats(s,e){
     tir:R.length?sts.filter(x=>x==='ok').length/R.length*100:null,low:sts.filter(x=>x==='low').length,vhigh:sts.filter(x=>x==='vhigh').length,
     kIn,kOut,kDays,kInAvg:kDays?kIn/kDays:null,sDays:new Set(SP.map(x=>dk(x.ts))).size,sMin:sum(SP.map(x=>x.dur||0)),
     mDays:new Set(R.map(r=>dk(r.ts))).size,unusualN:M.filter(m=>m.unusual).length,...burnSt(s,e,M)}}
-function burnSt(s,e,M){let bT=0,bN=0,balT=0,balN=0;for(let t=sod(s);t<e;t=addD(t,1)){const b=S.burn[dk(t)];if(!b)continue;bT+=b;bN++;const ki=sum(inR(M,t,addD(t,1)).map(m=>m.kcal||0));if(ki){balT+=ki-b;balN++}}
+function burnSt(s,e,M){let bT=0,bN=0,balT=0,balN=0;for(let t=sod(s);t<e;t=addD(t,1)){const b=bOf(dk(t));if(!b)continue;bT+=b;bN++;const ki=sum(inR(M,t,addD(t,1)).map(m=>m.kcal||0));if(ki){balT+=ki-b;balN++}}
   return{burn:bT,bN,bAvg:bN?bT/bN:null,bal:balN?balT/balN:null,balN,balT}}
 const sgn=x=>(Math.round(x)>0?'+':Math.round(x)<0?'−':'')+fk(Math.abs(x));
 const kgTxt=x=>'≈ '+(x<0?'−':'+')+(Math.abs(x)/7700).toFixed(2).replace(/\.?0+$/,'')+' кг';
 const kbar=(l,v,mx,c)=>`<div class="kb"><span class="mut">${l}</span><div class="pb"><i style="width:${Math.min(100,v/mx*100).toFixed(1)}%;background:${c}"></i></div><b>${fk(v)}</b></div>`;
 const balTxt=b=>Math.abs(b)<=150?'⚖️ Мувозанатда — вазн ўзгармайди':b<0?'⬇️ Сарф кўпроқ — вазн тушиши мумкин':'⬆️ Истеъмол кўпроқ — вазн ошиши мумкин';
+/* ================= Вазн ва ҳақиқий сарф ================= */
+// Ҳақиқий сарф = ўртача истеъмол − вазн тренди (кг/кун) × 7700. Сўнгги 28 кун олинади.
+const WIN=28,KG=7700,NEED={w:8,span:14,inn:10};
+const fkg=x=>x==null||isNaN(x)?'—':(Math.round(x*10)/10).toFixed(1);
+const kgD=(d,n=1)=>{const f=10**n,z=Math.round(d*f)/f;return z===0?'±0':(z>0?'+':'−')+Math.abs(z).toFixed(n)};
+const chg=(a,b)=>Math.round((a-b)*10)===0?'олдингисидан ўзгармаган':'олдингисидан '+kgD(a-b)+' кг';
+const dkT=k=>{const p=String(k).split('-').map(Number);return new Date(p[0],p[1]-1,p[2]).getTime()};
+const wtOf=t=>{const v=+S.wt[dk(t)];return v>0?v:null};
+function wtIn(s,e){const o=[];for(const k in S.wt){const v=+S.wt[k],t=dkT(k);if(v>0&&t>=sod(s)&&t<e)o.push({t,v})}return o.sort((a,b)=>a.t-b.t)}
+function wtPrev(t){let p=null;for(const k in S.wt){const v=+S.wt[k],x=dkT(k);if(v>0&&x<sod(t)&&(!p||x>p.t))p={t:x,v}}return p}
+let TDC={};
+function tdee(E){E=sod(E);if(TDC[E])return TDC[E];const s0=addD(E,-(WIN-1));
+  // овқат: фақат тўлиқ ёзилган кунлар (медиананинг ярмидан кам бўлса — чала ёзилган деб олинади)
+  const ks=[];for(let t=s0;t<=E;t=addD(t,1)){const k=sum(inR(S.meals,t,addD(t,1)).map(m=>m.kcal||0));if(k>0)ks.push(k)}
+  const so=ks.slice().sort((a,b)=>a-b),md=so.length?so[Math.floor(so.length/2)]:0,okD=ks.filter(k=>k>=Math.max(500,md*.5));
+  // вазн: даврнинг биринчи кунидан охирги кундан кейинги эрталабгача, чизиқли тренд
+  const W=wtIn(s0,addD(E,2)),n=W.length,xs=W.map(w=>Math.round((w.t-s0)/DAY)),ys=W.map(w=>w.v),span=n?xs[n-1]-xs[0]+1:0;
+  let b=null,se=null;if(n>=2&&span>1){const mx=mean(xs),my=mean(ys);let sxy=0,sxx=0;xs.forEach((x,i)=>{sxy+=(x-mx)*(ys[i]-my);sxx+=(x-mx)*(x-mx)});b=sxy/sxx;
+    if(n>=3){let rss=0;xs.forEach((x,i)=>{const f=my+b*(x-mx);rss+=(ys[i]-f)*(ys[i]-f)});se=Math.sqrt(rss/(n-2)/sxx)}}
+  const B=[];for(let t=s0;t<=E;t=addD(t,1)){const v=S.burn[dk(t)];if(v)B.push(v)}
+  const r={E,s0,n,span,nIn:okD.length,nSkip:ks.length-okD.length,inAvg:mean(okD),slope:b,bAvg:mean(B),nB:B.length};
+  r.ready=n>=NEED.w&&span>=NEED.span&&r.nIn>=NEED.inn&&b!=null;
+  // кўрсатиладиган рақамлар бутун сонга яхлитланади, шунда формула аниқ қўшилади (2 000 + 165 = 2 165)
+  if(r.ready){r.inR=Math.round(r.inAvg);r.dE=Math.round(-b*KG);r.T=r.inR+r.dE;r.err=se!=null?Math.max(30,Math.round(se*KG/10)*10):null;r.good=span>=21&&n>=14&&r.nIn>=18;
+    if(r.nB>=7&&r.bAvg>0)r.coef=Math.round(r.T/r.bAvg*100)/100}
+  return TDC[E]=r}
+const tdNow=()=>tdee(addD(sod(Date.now()),-1));
+// WHOOP рақамини шахсий коэффициентга кўпайтириш (коэффициент бўлмаса — ўзгаришсиз)
+const bK=()=>tdNow().coef||null;
+const bOf=k=>{const v=S.burn[k];if(!v)return 0;const K=bK();return K?Math.round(v*K):v};
+const tdE=e=>Math.min(addD(sod(Date.now()),-1),addD(e,-1));
+const prog=(l,v,n,u)=>`<div class="kb"><span class="mut">${l}</span><div class="pb"><i style="width:${Math.min(100,v/n*100).toFixed(0)}%;background:${v>=n?C.ok:C.aqua}"></i></div><b>${Math.min(v,n)}/${n}${u?' '+u:''}</b></div>`;
+function tdBlock(R,full){
+  if(!R.ready)return`<div class="tdx">Ҳақиқий кунлик сарфни ҳисоблаш учун ҳар куни эрталаб тортилинг ва овқатни ёзиб боринг. Етарли маълумот йиғилгач (тахминан 2 ҳафта), илова ўзи ҳисоблайди:</div>${prog('Вазн',R.n,NEED.w,'та')}${prog('Муддат',R.span,NEED.span,'кун')}${prog('Овқат',R.nIn,NEED.inn,'кун')}`;
+  const p=R.coef?Math.round((R.bAvg/R.T-1)*100):null,w7=R.slope*7,a=Math.abs(R.dE);
+  let h=`<div class="g2 kc" style="margin-top:12px">${kc('Ҳақиқий сарф (кунига)',fk(R.T)+(R.err?`<small> ±${R.err}</small>`:''))}${kc('WHOOP коэффициенти',R.coef?'× '+R.coef.toFixed(2):'—')}</div>`;
+  h+=`<div class="tdx">Сўнгги ${WIN} кун: ўртача истеъмол <b>${fk(R.inR)}</b> ккал, вазн ҳафтасига <b>${kgD(w7,2)}</b> кг.`;
+  if(full)h+=R.dE===0?' Вазн ўзгармаган — демак, сарф истеъмолга тенг.':` Вазн ${R.dE>0?'камайяпти: бу кунига ≈ '+fk(a)+' ккал тана заҳирасидан сарфланганини':'ошяпти: бу кунига ≈ '+fk(a)+' ккал заҳирага тўпланганини'} билдиради. Ҳақиқий сарф = ${fk(R.inR)} ${R.dE>0?'+':'−'} ${fk(a)} = <b>${fk(R.T)}</b> ккал.`;
+  h+='</div>';
+  if(R.coef)h+=`<div class="tdx">⌚ WHOOP ўртача <b>${fk(R.bAvg)}</b> ккал кўрсатган — ${Math.abs(p)<5?'ҳақиқатга яқин.':`${Math.abs(p)}% ${p>0?'ошириб':'камайтириб'} кўрсатяпти.`} WHOOP рақамини <b>${R.coef.toFixed(2)}</b> га кўпайтиринг${full?`: масалан, ${fk(R.bAvg)} × ${R.coef.toFixed(2)} = ${fk(Math.round(R.bAvg)*R.coef)}`:''}. Илова буни калория ҳисобларида ўзи қилади.</div>`;
+  else h+=`<div class="tdx">⌚ WHOOP коэффициенти учун камида 7 кунлик «🔥 Сарф» керак${R.nB?` (ҳозир ${R.nB} кун)`:''}. Ҳар куни кечқурун WHOOP'даги жами калорияни киритинг.</div>`;
+  h+=`<div class="tdx">Аниқлик: ${R.good?'яхши':'ўртача — кунлар кўпайган сари аниқлашади'}${R.nSkip?` · чала ёзилган ${R.nSkip} кун ҳисобга олинмади`:''}.</div>`;
+  if(full)h+=`<div class="tdx" style="font-size:12px">Бу ҳисоб тарози ва овқат дафтарига асосланган, шунинг учун соат кўрмайдиган сарфни ҳам ўз ичига олади (масалан, дори таъсирида сийдик билан чиқадиган қанд). Ҳисоб даври: ${dLabel(R.s0)} – ${dLabel(R.E)}.</div>`;
+  return h}
+function wtCard(t){t=sod(t);const v=wtOf(t),p=wtPrev(t),isT=t===sod(Date.now()),R=tdee(addD(t,-1));
+  if(!v&&!isT&&!R.ready&&!R.n)return'';
+  let h=`<div class="card"><div class="row"><h3 class="sp" style="margin:0">⚖️ Вазн ва ҳақиқий сарф</h3><button class="btn sm${v?'':' p'}" onclick="openWt(${t})">${v?'✏️ Вазн':'＋ Вазн'}</button></div>`;
+  if(v)h+=`<div class="hrow" style="margin-top:6px"><span class="wv">${fkg(v)}</span><span class="mut">кг</span>${p?`<span class="mut sp" style="text-align:right;font-size:13px">${chg(v,p.v)}</span>`:''}</div>`;
+  else if(isT)h+=`<div class="tdx">Бугун ҳали тортилмадингиз — эрталаб, овқатдан олдин тортилиб киритинг.</div>`;
+  return h+tdBlock(R,false)+'</div>'}
+function wtStatsCard(A){const now=sod(Date.now()),days=[];for(let t=A.s;t<A.e;t=addD(t,1))days.push(t);
+  const W=wtIn(A.s,A.e),R=tdee(tdE(A.e));if(!W.length&&!R.ready&&!R.n)return'';
+  let h=`<div class="card"><div class="row"><h3 class="sp" style="margin:0">⚖️ Вазн ва ҳақиқий сарф</h3><button class="btn sm" onclick="openWt()">＋ Вазн</button></div>`;
+  if(W.length){const wk=days.length<=7,pts=days.map((t,i)=>{const v=wtOf(t);return v==null?null:{x:i,y:v,tip:`${dLong(t)}\nВазн: ${fkg(v)} кг`}});
+    const ma=t=>{const w=[];for(let i=0;i<7;i++){const v=wtOf(addD(t,-i));if(v!=null)w.push(v)}return w.length>=3?mean(w):null},line=days.map((t,i)=>{if(t>now)return null;const v=ma(t);return v==null?null:{x:i,y:v}});
+    const tk=wk?days.map((t,i)=>({v:i,l:WDS[new Date(t).getDay()]+' '+new Date(t).getDate()})):[1,5,10,15,20,25,30].filter(d=>d<=days.length).map(d=>({v:d-1,l:String(d)}));
+    h+='<div style="height:8px"></div>'+(wk?legend([[C.blue,'Вазн, кг']],'line',false)+lineChart({x:{min:-.5,max:days.length-.5,ticks:tk},series:[{color:C.blue,pts,connectGaps:true}],h:170})
+      :legend([[C.blue,'Кунлик вазн'],[C.aqua,'7 кунлик ўртача']],'line',false)+lineChart({x:{min:-.7,max:days.length-.3,ticks:tk},series:[{color:C.blue,pts,noLine:true,r:3.5,dop:.6},{color:C.aqua,pts:line,noDots:true,w:2.5,connectGaps:true}],h:170}));
+    const a=W[0],b=W[W.length-1];h+=`<div class="tdx" style="margin-top:2px">${W.length>1?`${dLabel(a.t)}: <b>${fkg(a.v)}</b> → ${dLabel(b.t)}: <b>${fkg(b.v)}</b> кг (${Math.round((b.v-a.v)*10)===0?'ўзгармаган':kgD(b.v-a.v)+' кг'})`:`${dLabel(a.t)}: <b>${fkg(a.v)}</b> кг`} · ${W.length} та ўлчов</div>`}
+  return h+tdBlock(R,true)+'</div>'}
 function grp(cs){return{n:cs.length,rise:mean(cs.filter(c=>c.rise!=null).map(c=>c.rise)),peak:mean(cs.filter(c=>c.peak!=null).map(c=>c.peak)),p180:mean(cs.filter(c=>c.p180).map(c=>c.p180.v))}}
 function cmpUsual(A){const u=[],x=[];A.curves.forEach(({m,c})=>{if(c.peak==null)return;(m.unusual?x:u).push(c)});return{u:grp(u),x:grp(x)}}
 function sportDrops(A){return A.SP.map(s=>{const rs=S.readings.filter(r=>r.sportId===s.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost');return a&&b?{s,pre:a.v,post:b.v,d:b.v-a.v}:null}).filter(Boolean)}
@@ -468,9 +534,9 @@ function itemHtml(it){const o=it.o;
   if(it.k==='s'){const sp=SPORTS[o.type]||SPORTS.other;return`<div class="it" onclick="openSport('${o.id}')"><span class="t">${hm(o.ts)}</span><span class="i">${sp.i}</span><div class="sp"><b>${sp.n}</b> <span class="mut">${o.dur?o.dur+' дақ':''}</span></div><span class="mut">${o.kcal?'−'+fk(o.kcal)+' ккал':''}</span></div>`}
   return`<div class="it" ${o.src==='own'?`onclick="openMed('${o.id}')"`:'style="cursor:default"'}><span class="t">${hm(o.ts)}</span><span class="i">💊</span><div class="sp"><b>${esc(o.name)}</b> <span class="mut">${esc(o.dose||'')}${o.src==='dori'?' · «Дори вақти»дан':''}</span></div></div>`}
 const kc=(l,v)=>`<div><div class="mut" style="font-size:12px">${l}</div><div class="kv">${v}</div></div>`;
-function kcalCard(A){const k=dk(A.s),b=S.burn[k],isT=sod(Date.now())===A.s,goal=S.settings.kcalGoal,carbs=r1(sum(A.M.map(m=>m.carbs||0))),sug=r1(sum(A.M.map(m=>m.sugar||0)));
+function kcalCard(A){const k=dk(A.s),b0=S.burn[k],K=b0?bK():null,b=b0&&K?Math.round(b0*K):b0,isT=sod(Date.now())===A.s,goal=S.settings.kcalGoal,carbs=r1(sum(A.M.map(m=>m.carbs||0))),sug=r1(sum(A.M.map(m=>m.sugar||0)));
   if(!A.M.length&&!A.SP.length&&!b&&!isT)return'';let h='<div class="card"><h3>🔥 Калория (ккал)</h3>';
-  if(b){const bal=A.kIn-b;h+=`<div class="g3 kc">${kc('Истеъмол',fk(A.kIn))}${kc('Кунлик сарф',fk(b))}${kc('Баланс',sgn(bal))}</div><div class="mut" style="font-size:13px;margin-top:6px">${balTxt(bal)}${isT?' (кун ҳали тугамаган)':''}${A.kOut?'<br>Шундан спорт: '+fk(A.kOut)+' ккал':''}</div>`}
+  if(b){const bal=A.kIn-b;h+=`<div class="g3 kc">${kc('Истеъмол',fk(A.kIn))}${kc(K?'Сарф 🎯':'Кунлик сарф',fk(b))}${kc('Баланс',sgn(bal))}</div><div class="mut" style="font-size:13px;margin-top:6px">${K?`🎯 WHOOP ${fk(b0)} × ${K.toFixed(2)} — вазнингиз бўйича мосланган<br>`:''}${balTxt(bal)}${isT?' (кун ҳали тугамаган)':''}${A.kOut?'<br>Шундан спорт: '+fk(A.kOut)+' ккал':''}</div>`}
   else h+=`<div class="g3 kc">${kc('Истеъмол',fk(A.kIn))}${kc('Спорт сарфи',fk(A.kOut))}${kc('Фарқи',fk(A.kIn-A.kOut))}</div>`;
   {const mx=Math.max(A.kIn,b||0,goal||0,1)*1.04;h+=kbar('Истеъмол',A.kIn,mx,C.yellow);if(b)h+=kbar('Сарф',b,mx,C.aqua);if(goal)h+=kbar('Мақсад',goal,mx,'#5d6b88');}
   if(goal)h+=`<div class="mut" style="font-size:13px;margin-top:8px">Кунлик мақсад: ${fk(goal)} ккал · ${A.kIn>goal?'мақсаддан '+fk(A.kIn-goal)+' ортиқ':fk(goal-A.kIn)+' қолди'}</div>`;
@@ -483,6 +549,16 @@ function openBurn(t){const k=dk(t);F={k:'b',day:k};
 function saveBurn(){const d=$('#b_d').value,k=num($('#b_k').value);if(!d)return toast('Санани танланг');if(!isFinite(k)||k<500||k>9000)return toast('Рақам нотўғри (500–9000 ккал)');
   if(F.day&&F.day!==d)delete S.burn[F.day];S.burn[d]=Math.round(k);save();closeSheet();render();toast('✅ Сақланди')}
 function delBurn(){if(!confirm('Шу куннинг сарфи ўчирилсинми?'))return;delete S.burn[F.day];save();closeSheet();render()}
+function openWt(t){const k=dk(t||Date.now()),cur=wtOf(dkT(k)),p=wtPrev(dkT(k));F={k:'w',day:k};
+  openSheet(`<h2>⚖️ Вазн</h2><div class="mut" style="font-size:13px">Ҳар куни <b>эрталаб</b> — ҳожатдан кейин, овқат ва сувдан олдин тортилинг (наҳорги қандни ўлчаганда). Шунда ўзгариш аниқ кўринади.</div>
+  <div class="vin"><input id="w_v" inputmode="decimal" autocomplete="off" enterkeyhint="done" placeholder="${S.settings.weight?fkg(S.settings.weight):'85.0'}" value="${cur?fkg(cur):''}" onkeydown="if(event.key==='Enter')saveWt()"><span>кг</span></div>
+  ${p?`<div class="tdx">Олдинги: <b>${fkg(p.v)} кг</b> (${dLabel(p.t)})</div>`:''}
+  <label>Сана</label><input type="date" id="w_d" value="${k}" max="${dk(Date.now())}">
+  ${btns('saveWt',cur?'delWt':'')}`);if(!cur)setTimeout(()=>{const i=$('#w_v');if(i&&sheetOpen)i.focus()},300)}
+function saveWt(){const d=$('#w_d').value,v=num($('#w_v').value);if(!d)return toast('Санани танланг');if(!isFinite(v)||v<30||v>250)return toast('Вазн нотўғри (30–250 кг)');
+  if(F.day&&F.day!==d)delete S.wt[F.day];S.wt[d]=Math.round(v*100)/100;const last=Object.keys(S.wt).sort().pop();if(last)S.settings.weight=Math.round(S.wt[last]*10)/10;
+  save();closeSheet();render();const p=wtPrev(dkT(d));toast('✅ Сақланди'+(p?' · '+chg(v,p.v):''))}
+function delWt(){if(!confirm('Шу куннинг вазни ўчирилсинми?'))return;delete S.wt[F.day];save();closeSheet();render();toast('🗑 Ўчирилди')}
 function warnCard(r){const s=st(r.v,r.tag);
   if(s==='low')return`<div class="alert bad">⚠️ <b>Қанд паст: ${fv(r.v)} ${U()}</b> (${hm(r.ts)})<br>Тез сўриладиган углевод истеъмол қилинг (масалан, ярим стакан мева шарбати ёки 3–4 бўлак қанд) ва 15 дақиқадан кейин қайта ўлчанг. Тез-тез такрорланса, шифокорингизга айтинг.<div style="margin-top:8px"><button class="btn sm" onclick="addRecheck(15)">⏰ 15 дақдан кейин эслат</button></div></div>`;
   if(s==='vhigh')return`<div class="alert bad">‼️ <b>Қанд жуда юқори: ${fv(r.v)} ${U()}</b> (${hm(r.ts)})<br>Сув ичинг ва 1–2 соатдан кейин қайта ўлчанг. Юқори қанд такрорланса ёки ўзингизни ёмон ҳис қилсангиз, шифокорга мурожаат қилинг.<div style="margin-top:8px"><button class="btn sm" onclick="addRecheck(90)">⏰ 1.5 соатдан кейин эслат</button></div></div>`;
@@ -499,13 +575,13 @@ function vToday(){const now=Date.now(),t0=sod(now),t1=addD(t0,1),A=stats(t0,t1),
     <div style="margin-top:8px">${stTag(s)}<span class="tag">${TAGS[last.tag].i} ${TAGS[last.tag].l}</span>${m?`<span class="tag">${MEALT[m.type].i} ${MEALT[m.type].n} ${hm(m.ts)}</span>`:''}</div>
     ${A.n?`<div class="hs"><div><b>${fv(A.avg)}</b><span>бугун ўртача</span></div><div><b>${A.n}</b><span>ўлчов</span></div><div><b>${A.tir!=null?Math.round(A.tir)+'%':'—'}</b><span>мақсадда</span></div></div>`:''}</div>`}
   const P=allPend(now);if(P.length)h+=pendCard(P);
-  h+=`<div class="qa"><button onclick="openReading()"><b>🩸</b>Қанд</button><button onclick="openMeal()"><b>🍽</b>Овқат</button><button onclick="openSport()"><b>🏃</b>Спорт</button><button onclick="openMed()"><b>💊</b>Дори</button><button onclick="openBurn(sod(Date.now()))"><b>🔥</b>Сарф</button></div>`;
+  h+=`<div class="qa"><button onclick="openReading()"><b>🩸</b>Қанд</button><button onclick="openMeal()"><b>🍽</b>Овқат</button><button onclick="openSport()"><b>🏃</b>Спорт</button><button onclick="openMed()"><b>💊</b>Дори</button><button onclick="openBurn(sod(Date.now()))"><b>🔥</b>Сарф</button><button onclick="openWt()"><b>⚖️</b>Вазн</button></div>`;
   if(!S.readings.length&&!S.meals.length)h+=`<div class="card"><h3>👋 Қандай ишлатилади?</h3><ol class="guide">
     <li><b>Эрталаб наҳорда</b> қандни ўлчаб, «🩸 Қанд» тугмаси орқали киритинг.</li>
     <li><b>Овқатланаётганда</b> «🍽 Овқат»ни босинг: нима еганингиз, калорияси, одатий ёки ноодатий эканини белгиланг. Илова 30 дақиқа, 1 соат ва 3 соатдан кейин ўлчашни эслатади.</li>
     <li><b>Спорт</b> қилсангиз, давомийлиги ва сарфланган калорияни киритинг (фитнес браслет ёки соатингиздаги рақам).</li>
     <li><b>«📊 Таҳлил»</b> бўлимида кунлик, ҳафталик ва ойлик натижаларни, ўзгаришлар ва хулосаларни кўрасиз.</li></ol></div>`;
-  h+=kcalCard(A);
+  h+=kcalCard(A)+wtCard(t0);
   if(A.n)h+=`<div class="card"><h3>📈 Бугунги қанд</h3>${dayChart(t0,t1)}</div>`;
   if(A.M.length)h+=`<div class="card"><h3>🍽 Овқатлар таъсири</h3>${A.M.slice().sort((a,b)=>a.ts-b.ts).map(mealRow).join('')}</div>`;
   if(A.SP.length)h+=`<div class="card"><h3>🏃 Спорт</h3>${A.SP.slice().sort((a,b)=>a.ts-b.ts).map(sportRow).join('')}</div>`;
@@ -524,7 +600,7 @@ function vLog(){const f=UI.logF;let h=`<div class="chips" style="margin-bottom:1
   if(!all.length)return h+'<div class="card empty"><b>📖</b>Ҳали ёзув йўқ.</div>';
   const by={};all.forEach(it=>{(by[dk(it.ts)]=by[dk(it.ts)]||[]).push(it)});const keys=Object.keys(by).sort().reverse();
   keys.slice(0,UI.logDays).forEach(k=>{const items=by[k],s0=sod(items[0].ts),A=stats(s0,addD(s0,1));
-    const sm=[A.n?'🩸 '+A.n+' та · ўртача '+fv(A.avg):'',A.kIn?'🔥 '+fk(A.kIn)+' ккал':'',A.sMin?'🏃 '+A.sMin+' дақ':''].filter(Boolean).join(' · ');
+    const sm=[A.n?'🩸 '+A.n+' та · ўртача '+fv(A.avg):'',A.kIn?'🔥 '+fk(A.kIn)+' ккал':'',A.sMin?'🏃 '+A.sMin+' дақ':'',S.wt[k]?'⚖️ '+fkg(S.wt[k])+' кг':''].filter(Boolean).join(' · ');
     h+=`<div class="card"><div class="row" style="margin-bottom:2px"><div class="sp"><h3 style="margin:0">${dLong(s0)}</h3>${sm?`<div class="mut" style="font-size:13px">${sm}</div>`:''}</div><button class="btn sm" onclick="goDay(${s0})" aria-label="Кун таҳлили">📊</button></div>${items.map(itemHtml).join('')}</div>`});
   if(keys.length>UI.logDays)h+=`<button class="btn full" onclick="UI.logDays+=14;render()">Яна кўрсатиш</button>`;
   return h}
@@ -540,7 +616,7 @@ function vStats(){const[s,e]=rangeOf(UI.sm,UI.sa),[ps,pe]=prevOf(UI.sm,s),cur=s<
   let h=`<div class="seg">${[['day','Кунлик'],['week','Ҳафталик'],['month','Ойлик']].map(([k,n])=>`<button class="${UI.sm===k?'on':''}" onclick="UI.sm='${k}';render()">${n}</button>`).join('')}</div>
   <div class="pnav"><button class="btn" onclick="shiftP(-1)" aria-label="Олдинги">‹</button><div class="sp"><b>${pLabel(UI.sm,s,e)}</b>${cur?'':`<div><button class="lnk" style="padding:2px 0" onclick="UI.sa=Date.now();render()">Бугунга қайтиш</button></div>`}</div><button class="btn" onclick="shiftP(1)" ${e>Date.now()?'disabled':''} aria-label="Кейинги">›</button></div>`;
   const A=stats(s,e),B=stats(ps,pe);
-  if(!A.n&&!A.M.length&&!A.SP.length)return h+'<div class="card empty"><b>📊</b>Бу даврда маълумот йўқ.</div>';
+  if(!A.n&&!A.M.length&&!A.SP.length&&!wtIn(s,e).length)return h+'<div class="card empty"><b>📊</b>Бу даврда маълумот йўқ.</div>';
   h+=tilesHtml(A,B)+insightsHtml(A,B);
   if(UI.sm==='day')h+=dayDetail(A);else if(UI.sm==='week')h+=weekDetail(A,B);else h+=monthDetail(A,B);
   return h+`<button class="btn full" style="margin-bottom:12px" onclick="shareReport()">📤 Ҳисоботни улашиш (Telegram ва б.)</button>`}
@@ -557,7 +633,9 @@ function tilesHtml(A,B){const per={day:'кечага',week:'ўтган ҳафт�
   t.push(tile('Ўлчовлар',String(A.n),'',`<div class="td neu">${A.mDays} кунда</div>`));
   if(UI.sm==='day')t.push(tile('Калория',fk(A.kIn),'ккал',`<div class="td neu">спорт: ${fk(A.kOut)} ккал</div>`));
   else t.push(tile('Калория (кунига)',fk(A.kInAvg),'ккал',dlt(A.kInAvg,B.kInAvg,'none','k')));
-  if(A.balN)t.push(tile(UI.sm==='day'?'Энергия баланси':'Баланс (кунига)',sgn(A.bal),'ккал',`<div class="td neu">сарф ${fk(A.bAvg)} ккал</div>`));
+  if(A.balN)t.push(tile(UI.sm==='day'?'Энергия баланси':'Баланс (кунига)',sgn(A.bal),'ккал',`<div class="td neu">${bK()?'мосланган сарф':'сарф'} ${fk(A.bAvg)} ккал</div>`));
+  {const w=wtIn(A.s,A.e),wb=wtIn(B.s,B.e);if(w.length){const a=mean(w.map(x=>x.v)),d=wb.length?Math.round((a-mean(wb.map(x=>x.v)))*10)/10:null;
+    t.push(tile(UI.sm==='day'?'Вазн':'Вазн (ўртача)',fkg(a),'кг',`<div class="td neu">${d==null?'—':d===0?'= ўзгармади':(d>0?'▲ ':'▼ ')+Math.abs(d).toFixed(1)+' кг'}</div>`))}}
   t.push(tile('Спорт',UI.sm==='day'?(A.sMin?A.sMin+' дақ':'—'):A.sDays+' кун','',`<div class="td neu">${fk(A.kOut)} ккал сарф</div>`));
   if(UI.sm==='month'){const e=eA1c(A);t.push(tile('Тахминий HbA1c',e!=null?e.toFixed(1)+'%':'—','',`<div class="td neu">${e!=null?'фақат мўлжал':'маълумот кам'}</div>`))}
   return`<div class="mut" style="font-size:12px;margin:0 0 6px">▲▼ — ${per} нисбатан ўзгариш</div><div class="tiles">${t.join('')}</div>`}
@@ -576,18 +654,21 @@ function insightsHtml(A,B){const L=[],per={day:'кечага',week:'ўтган �
   const pm=postMealSport(A);if(pm.w.n>=2&&pm.wo.n>=2&&pm.w.p180!=null&&pm.wo.p180!=null&&sig(pm.w.p180-pm.wo.p180))L.push(['🍽',`Овқатдан кейин спорт қилганда 3 соатдаги қанд ўртача ${fv(Math.abs(pm.w.p180-pm.wo.p180))} га ${pm.w.p180<pm.wo.p180?'паст':'юқори'} бўлди.`,pm.w.p180<pm.wo.p180?'ok':'i']);
   const cp=A.curves.filter(x=>x.m.kcal&&x.c.rise!=null);if(cp.length>=6){const r=corr(cp.map(x=>x.m.kcal),cp.map(x=>x.c.rise));if(r!=null)L.push(r>=.5?['🔥','Калорияси кўп овқатлардан кейин қанд кўпроқ кўтарилган (боғлиқлик кучли).','warn']:r>=.3?['🔥','Калория ошган сари қанд кўтарилиши ҳам бироз ошяпти.','i']:['🔥','Калория миқдори билан қанд кўтарилиши орасида аниқ боғлиқлик кўринмаяпти — овқат таркиби (углевод) муҳимроқ бўлиши мумкин.','i'])}
   if(A.balN>=(UI.sm==='day'?1:3))L.push(['⚖️',Math.abs(A.bal)<=150?`Истеъмол ва сарф мувозанатда (ўртача ${sgn(A.bal)} ккал кунига).`:`Ўртача кунига ${fk(Math.abs(A.bal))} ккал ${A.bal<0?'кам ейилди — вазн тушиши мумкин':'кўп ейилди — вазн ошиши мумкин'}.`,Math.abs(A.bal)<=150?'ok':'i']);
+  if(UI.sm!=='day'){const w=wtIn(A.s,A.e),wb=wtIn(B.s,B.e);if(w.length>=2&&wb.length>=2){const a=mean(w.map(x=>x.v)),b=mean(wb.map(x=>x.v)),d=a-b;
+      L.push(Math.abs(d)<.2?['⚖️',`Вазн ${per} нисбатан деярли ўзгармади (ўртача ${fkg(a)} кг).`,'ok']:['⚖️',`Ўртача вазн ${per} нисбатан ${Math.abs(d).toFixed(1)} кг га ${d<0?'камайди':'ошди'}: ${fkg(b)} → ${fkg(a)} кг.`,'i'])}
+    const R=tdee(tdE(A.e));if(R.ready&&R.coef){const p=Math.round((1/R.coef-1)*100);L.push(Math.abs(p)<5?['⌚',`WHOOP сарфни деярли тўғри кўрсатяпти: ҳақиқий сарф ≈ ${fk(R.T)}, WHOOP — ${fk(R.bAvg)} ккал/кун.`,'ok']:['⌚',`WHOOP сарфни ${Math.abs(p)}% ${p>0?'ошириб':'камайтириб'} кўрсатяпти: ҳақиқий сарф ≈ ${fk(R.T)}, WHOOP — ${fk(R.bAvg)} ккал/кун.`,'i'])}}
   const fr=foodRank(A);if(fr.length>=2)L.push(['🍚',`Энг кўп кўтарган таом: ${esc(fr[0].name)} (${fd(fr[0].rise)}).`,'i']);
   if(UI.sm!=='day'){const el=Math.max(1,Math.round((Math.min(A.e,addD(sod(Date.now()),1))-A.s)/DAY));if(A.fastN<el)L.push(['📝',`Наҳорги қанд ${el} кундан ${A.fastN} кунида ўлчанган. Ҳар куни ўлчасангиз, таҳлил аниқроқ бўлади.`,'i'])}
   const md=medCmp(A);if(md&&md.w.n>=2&&md.wo.n>=2)L.push(['💊',`Дори ичилган кунлари ўртача қанд ${fv(md.w.avg)}, ичилмаган кунлари ${fv(md.wo.avg)}.`,'i']);
   if(!L.length)L.push(['ℹ️','Хулоса чиқариш учун маълумот ҳали кам. Ўлчовларни киритишда давом этинг.','i']);
   return`<div class="card"><h3>💡 Хулосалар</h3>${L.map(([i,t,c])=>`<div class="ins ${c}"><b>${i}</b><div>${t}</div></div>`).join('')}<div class="mut" style="font-size:12px;margin-top:8px">Бу — кузатув натижалари. Даволаш ва дори бўйича қарорни шифокор билан қабул қилинг.</div></div>`}
-function dayDetail(A){let h=kcalCard(A);
+function dayDetail(A){let h=kcalCard(A)+wtCard(A.s);
   if(A.n)h+=`<div class="card"><h3>📈 Кун давомида қанд</h3>${dayChart(A.s,A.e)}</div>`;
   if(A.M.length)h+=`<div class="card"><h3>🍽 Овқатлар таъсири</h3>${A.M.slice().sort((a,b)=>a.ts-b.ts).map(mealRow).join('')}</div>`;
   if(A.SP.length)h+=`<div class="card"><h3>🏃 Спорт</h3>${A.SP.slice().sort((a,b)=>a.ts-b.ts).map(sportRow).join('')}</div>`;
   const L=entries(A.s,A.e);if(L.length)h+=`<div class="card"><h3>📝 Ёзувлар</h3>${L.map(itemHtml).join('')}</div>`;return h}
-function weekDetail(A,B){return`<div class="card"><h3>📈 Кунлар бўйича</h3>${daysChart(A)}</div>`+kcalBars(A)+curveCard(A,B,'Бу ҳафта','Ўтган ҳафта')+slotTable(A,B)+compareCard(A)+foodCard(A)+scatterCard(A)}
-function monthDetail(A,B){return calCard(A)+`<div class="card"><h3>📈 Ой давомида ўзгариш</h3>${monthTrend(A)}</div>`+curveCard(A,B,'Бу ой','Ўтган ой')+kcalBars(A)+weeksTable(A)+slotTable(A,B)+trend12()+compareCard(A)+foodCard(A)+scatterCard(A)}
+function weekDetail(A,B){return`<div class="card"><h3>📈 Кунлар бўйича</h3>${daysChart(A)}</div>`+kcalBars(A)+wtStatsCard(A)+curveCard(A,B,'Бу ҳафта','Ўтган ҳафта')+slotTable(A,B)+compareCard(A)+foodCard(A)+scatterCard(A)}
+function monthDetail(A,B){return calCard(A)+`<div class="card"><h3>📈 Ой давомида ўзгариш</h3>${monthTrend(A)}</div>`+curveCard(A,B,'Бу ой','Ўтган ой')+kcalBars(A)+wtStatsCard(A)+weeksTable(A)+slotTable(A,B)+trend12()+compareCard(A)+foodCard(A)+scatterCard(A)}
 function daysChart(A){const days=[];for(let t=A.s;t<A.e;t=addD(t,1))days.push(t);
   const f=days.map((t,i)=>{const v=fastOf(t);return v==null?null:{x:i,y:toU(v),tip:`${dLong(t)}\nНаҳорги: ${fv(v)} ${U()}`}});
   const p=days.map((t,i)=>{const v=peakOf(t);return v==null?null:{x:i,y:toU(v),tip:`${dLong(t)}\nОвқатдан кейин энг юқори: ${fv(v)} ${U()}`}});
@@ -608,12 +689,12 @@ function slotTable(A,B){const rows=Object.keys(TAGS).filter(t=>A.by[t].length);i
     return`<tr><td>${TAGS[t].n}</td><td>${A.by[t].length}</td><td><b>${fv(a)}</b>${sdot(a,t)}</td><td>${fv(b)}</td><td>${b!=null?dTxt(a-b):'—'}</td></tr>`}).join('')}</table>
   <div class="mut" style="font-size:12px;margin-top:6px">«Олдинги» — ${UI.sm==='month'?'ўтган ой':UI.sm==='week'?'ўтган ҳафта':'кеча'}. Ранг — ўртача қиймат мақсадга нисбатан.</div></div>`}
 function kcalBars(A){const days=[];for(let t=A.s;t<A.e;t=addD(t,1))days.push(t);const hasB=A.bN>0;
-  const cats=days.map(t=>{const s=sod(t),e=addD(s,1),i=sum(inR(S.meals,s,e).map(m=>m.kcal||0)),sp=sum(inR(S.sports,s,e).map(x=>x.kcal||0)),b=S.burn[dk(t)]||0,o=hasB?b:sp;
+  const cats=days.map(t=>{const s=sod(t),e=addD(s,1),i=sum(inR(S.meals,s,e).map(m=>m.kcal||0)),sp=sum(inR(S.sports,s,e).map(x=>x.kcal||0)),b=bOf(dk(t)),o=hasB?b:sp;
     return{l:days.length>7?String(new Date(t).getDate()):WDS[new Date(t).getDay()],v:[i,o],tip:`${dLong(t)}\nИстеъмол: ${fk(i)} ккал\n${hasB?'Кунлик сарф: '+(b?fk(b)+' ккал':'киритилмаган'):'Спорт сарфи: '+fk(sp)+' ккал'}${hasB&&b&&i?'\nБаланс: '+sgn(i-b):''}`}});
   if(!cats.some(c=>c.v[0]||c.v[1]))return'';
   const top=hasB?`${kc('Истеъмол',fk(A.kInAvg))}${kc('Сарф',fk(A.bAvg))}${kc('Баланс',A.bal!=null?sgn(A.bal):'—')}`:`${kc('Жами истеъмол',fk(A.kIn))}${kc('Спорт сарфи',fk(A.kOut))}${kc('Кунига ўртача',fk(A.kInAvg))}`;
   const tot=hasB?(()=>{const mx=Math.max(A.kIn,A.burn,1)*1.04;return`<div class="mut" style="font-size:12px;margin-top:12px">Давр бўйича жами:</div>${kbar('Истеъмол',A.kIn,mx,C.yellow)}${kbar('Сарф',A.burn,mx,C.aqua)}${A.balN?`<div style="margin-top:8px;font-size:14px">Жами баланс: <b>${sgn(A.balT)} ккал</b> <span class="mut">(${kgTxt(A.balT)}, ${A.balN} кун)</span></div>`:''}`})():'';
-  return`<div class="card"><h3>🔥 Калория (ккал${hasB?', кунига ўртача':''})</h3><div class="g3 kc">${top}</div>${tot}${hasB&&A.bal!=null?`<div class="mut" style="font-size:13px;margin-top:6px">${balTxt(A.bal)}</div>`:hasB?'':'<div class="mut" style="font-size:12px;margin-top:6px">Кунлик жами сарфни (WHOOP) киритсангиз, истеъмол билан солиштирилади.</div>'}<div style="height:10px"></div>${legend([[C.yellow,'Истеъмол'],[C.aqua,hasB?'Кунлик сарф':'Спорт сарфи']],'rect',false)}${barChart({cats,colors:[C.yellow,C.aqua],ref:S.settings.kcalGoal||0})}</div>`}
+  return`<div class="card"><h3>🔥 Калория (ккал${hasB?', кунига ўртача':''})</h3><div class="g3 kc">${top}</div>${tot}${hasB&&A.bal!=null?`<div class="mut" style="font-size:13px;margin-top:6px">${balTxt(A.bal)}${bK()?`<br>🎯 Сарф — WHOOP × ${bK().toFixed(2)}, вазнингиз бўйича мосланган`:''}</div>`:hasB?'':'<div class="mut" style="font-size:12px;margin-top:6px">Кунлик жами сарфни (WHOOP) киритсангиз, истеъмол билан солиштирилади.</div>'}<div style="height:10px"></div>${legend([[C.yellow,'Истеъмол'],[C.aqua,hasB?(bK()?'Сарф (мосланган)':'Кунлик сарф'):'Спорт сарфи']],'rect',false)}${barChart({cats,colors:[C.yellow,C.aqua],ref:S.settings.kcalGoal||0})}</div>`}
 function compareCard(A){let h='';const u=cmpUsual(A);
   if(u.x.n||u.u.n&&u.x.n)h+=`<h4>🍽 Одатий ва ноодатий овқат</h4><table><tr><th></th><th>Сони</th><th>Кўтарилиш</th><th>Энг юқори</th><th>3 соатда</th></tr>${[['✅ Одатий',u.u],['⚡ Ноодатий',u.x]].map(([n,o])=>`<tr><td>${n}</td><td>${o.n}</td><td>${fd(o.rise)}</td><td>${fv(o.peak)}</td><td>${fv(o.p180)}</td></tr>`).join('')}</table>`;
   const sd=sportDrops(A);if(sd.length){const g={};sd.forEach(x=>{(g[x.s.type]=g[x.s.type]||[]).push(x)});const rows=Object.entries(g).map(([k,a])=>[(SPORTS[k]||SPORTS.other).i+' '+(SPORTS[k]||SPORTS.other).n,a]);if(rows.length>1)rows.push(['Жами',sd]);
@@ -669,7 +750,7 @@ function vSet(){const s=S.settings,perm='Notification'in window?Notification.per
   <button class="btn full" onclick="testAlert()">🧪 Синов эслатмаси</button>
   <label>🌅 Ҳар куни эрталаб наҳорги ўлчовни эслатиш</label><div class="row"><input type="time" value="${s.fastTime}" onchange="S.settings.fastTime=this.value;save()" style="flex:1"><button class="btn sm" onclick="icsFast()">📅 Календарга</button></div></div>`;
   h+=`<div class="card"><h3>🔥 Калория</h3><div class="g2"><div><label>Кунлик калория мақсади</label><input inputmode="numeric" value="${s.kcalGoal||''}" placeholder="масалан 2200" onchange="S.settings.kcalGoal=Math.max(0,Math.round(num(this.value)||0));save()"></div>
-  <div><label>Вазнингиз (кг)</label><input inputmode="decimal" value="${s.weight||''}" placeholder="масалан 85" onchange="S.settings.weight=Math.max(0,num(this.value)||0);save()"></div></div><div class="mut" style="font-size:13px;margin-top:6px">Вазн — спорт калориясини тахминий ҳисоблаш учун (браслет ёки соат бўлмаганда).</div></div>`;
+  <div><label>Вазнингиз (кг)</label><input inputmode="decimal" value="${s.weight||''}" placeholder="масалан 85" onchange="S.settings.weight=Math.max(0,num(this.value)||0);save()"></div></div><div class="mut" style="font-size:13px;margin-top:6px">Вазн — спорт калориясини тахминий ҳисоблаш учун. «⚖️ Вазн» тугмаси орқали киритсангиз, бу ер ўзи янгиланади.</div></div>`;
   h+=`<div class="card"><h3>🥗 Таомлар рўйхати</h3><div class="mut" style="font-size:13px">Ҳар бир таомнинг <b>1 донаси ёки 1 порцияси</b> учун калория, углевод ва шакар. Овқат киритганда фақат сонини белгилайсиз — жамини илова ўзи ҳисоблайди. Бошланғич рақамлар тахминий: ўзингизникига тўғрилаб олинг.</div>${S.foods.slice().sort((a,b)=>a.name.localeCompare(b.name)).map(f=>`<div class="it" onclick="openFood('${f.id}')"><span class="i">🍽</span><div class="sp"><b>${esc(f.name)}</b><div class="mut">1 ${f.unit}: ${f.kcal} ккал · ${f.carbs} г углевод · ${f.sugar} г шакар</div></div><span class="mut">✏️</span></div>`).join('')}<button class="btn full" style="margin-top:10px" onclick="openFood()">＋ Таом қўшиш</button></div>`;
   h+=`<div class="card"><h3>💊 Дорилар</h3>${S.medList.map(m=>`<div class="it" style="cursor:default"><span class="i">💊</span><div class="sp"><b>${esc(m.name)}</b> <span class="mut">${esc(m.dose||'')}</span></div><button class="btn sm bad" onclick="delMedL('${m.id}')" aria-label="Ўчириш">🗑</button></div>`).join('')}
   <button class="btn full" style="margin-top:8px" onclick="openMedL()">＋ Рўйхатга дори қўшиш</button>${swi('dori','🔗 «Дори вақти» иловасидан олиш',doriInfo())}</div>`;
@@ -874,8 +955,8 @@ function xlsx(sheets){const X=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<
   return zip(f)}
 function exportXlsx(){if(!S.readings.length&&!S.meals.length)return toast('Ҳали маълумот йўқ');const u=U(),nv=v=>v==null||isNaN(v)?'':isMg()?Math.round(v*18):Math.round(v*10)/10,byT=(a,b)=>a.ts-b.ts;
   const R=S.readings.slice().sort(byT),M=S.meals.slice().sort(byT),SP=S.sports.slice().sort(byT);
-  const days=[...new Set([...R,...M,...SP].map(x=>dk(x.ts)).concat(Object.keys(S.burn)))].sort();
-  const s1=[['Сана','Наҳорги ('+u+')','Ўртача','Энг юқори','Ўлчовлар','Мақсадда, %','Калория','Кунлик сарф','Баланс','Спорт, ккал','Спорт, дақ'],...days.map(k=>{const p=k.split('-').map(Number),s=new Date(p[0],p[1]-1,p[2]).getTime(),A=stats(s,addD(s,1));return[k,nv(fastOf(s)),nv(A.avg),nv(A.max),A.n||'',A.tir!=null?Math.round(A.tir):'',A.kIn||'',S.burn[k]||'',S.burn[k]&&A.kIn?A.kIn-S.burn[k]:'',A.kOut||'',A.sMin||'']})];
+  const days=[...new Set([...R,...M,...SP].map(x=>dk(x.ts)).concat(Object.keys(S.burn),Object.keys(S.wt)))].sort();
+  const s1=[['Сана','Наҳорги ('+u+')','Ўртача','Энг юқори','Ўлчовлар','Мақсадда, %','Калория','Кунлик сарф','Баланс','Спорт, ккал','Спорт, дақ','Вазн, кг'],...days.map(k=>{const p=k.split('-').map(Number),s=new Date(p[0],p[1]-1,p[2]).getTime(),A=stats(s,addD(s,1));return[k,nv(fastOf(s)),nv(A.avg),nv(A.max),A.n||'',A.tir!=null?Math.round(A.tir):'',A.kIn||'',S.burn[k]||'',S.burn[k]&&A.kIn?A.kIn-S.burn[k]:'',A.kOut||'',A.sMin||'',S.wt[k]||'']})];
   const s2=[['Сана','Вақт','Қанд ('+u+')','Ўлчов','Ҳолат','Овқат','Восита','Изоҳ'],...R.map(r=>{const m=r.mealId&&getM(r.mealId);return[dk(r.ts),hm(r.ts),nv(r.v),TAGS[r.tag].l,STL[st(r.v,r.tag)][1],m?MEALT[m.type].n+' '+hm(m.ts):'',r.src==='cgm'?'Сенсор':'Глюкометр',r.note||'']})];
   const s3=[['Сана','Вақт','Тури','Таом','Калория','Углевод, г','Шакар, г','Одатий/Ноодатий','Олдин','30 дақ','1 соат','2 соат','3 соат','Кўтарилиш','Изоҳ'],...M.map(m=>{const c=curve(m);return[dk(m.ts),hm(m.ts),MEALT[m.type].n,m.name||'',m.kcal??'',m.carbs??'',m.sugar??'',m.unusual?'Ноодатий':'Одатий',nv(c.pre&&c.pre.v),nv(c.p30&&c.p30.v),nv(c.p60&&c.p60.v),nv(c.p120&&c.p120.v),nv(c.p180&&c.p180.v),nv(c.rise),m.note||'']})];
   const s4=[['Сана','Вақт','Тури','Давомийлик, дақ','Калория','Жадаллик','Олдин','Кейин','Фарқ','Изоҳ'],...SP.map(x=>{const rs=S.readings.filter(r=>r.sportId===x.id),a=rs.find(r=>r.tag==='spre'),b=rs.find(r=>r.tag==='spost');return[dk(x.ts),hm(x.ts),(SPORTS[x.type]||SPORTS.other).n,x.dur??'',x.kcal??'',INT[x.inten||2].n,nv(a&&a.v),nv(b&&b.v),a&&b?nv(b.v-a.v):'',x.note||'']})];
@@ -904,6 +985,9 @@ function reportText(){const[s,e]=rangeOf(UI.sm,UI.sa),A=stats(s,e),B=stats(...pr
   if(A.kIn)L.push(`Калория: кунига ўртача ${fk(A.kInAvg)} ккал`);
   if(A.bN){if(UI.sm==='day')L.push(`Энергия: истеъмол ${fk(A.kIn)} · сарф ${fk(A.burn)} · баланс ${sgn(A.kIn-A.burn)} ккал`);
     else L.push(`Энергия (жами): истеъмол ${fk(A.kIn)} · сарф ${fk(A.burn)} ккал`,`Кунига ўртача: истеъмол ${fk(A.kInAvg)} · сарф ${fk(A.bAvg)}`+(A.balN?` · баланс ${sgn(A.bal)}`:''),...(A.balN?[`Жами баланс: ${sgn(A.balT)} ккал (${kgTxt(A.balT)})`]:[]))}
+  if(A.bN&&bK())L.push(`(Сарф — WHOOP × ${bK().toFixed(2)}, вазн бўйича мосланган)`);
+  {const w=wtIn(s,e);if(w.length)L.push(w.length>1?`Вазн: ${fkg(w[0].v)} → ${fkg(w[w.length-1].v)} кг (${kgD(w[w.length-1].v-w[0].v)})`:`Вазн: ${fkg(w[0].v)} кг`);
+    const R=tdee(tdE(e));if(R.ready)L.push(`Ҳақиқий сарф (вазн ва овқатдан): ≈ ${fk(R.T)} ккал/кун`+(R.coef?` · WHOOP коэффициенти × ${R.coef.toFixed(2)}`:''))}
   if(A.SP.length)L.push(`Спорт: ${A.sDays} кун, ${A.sMin} дақиқа, ${fk(A.kOut)} ккал`);
   if(A.unusualN)L.push(`Ноодатий овқатлар: ${A.unusualN} та`);
   const e1=eA1c(A);if(UI.sm==='month'&&e1!=null)L.push(`Тахминий HbA1c: ${e1.toFixed(1)}% (ўлчовлардан ҳисобланган, фақат мўлжал)`);
@@ -912,7 +996,7 @@ async function shareReport(){const t=reportText();try{if(navigator.share){await 
   try{await navigator.clipboard.writeText(t);toast('📋 Ҳисобот нусхаланди — Telegram’га қўйиб юборинг')}catch(e){openSheet(`<h2>📤 Ҳисобот</h2><textarea style="height:320px">${esc(t)}</textarea><button class="btn full" style="margin-top:12px" onclick="closeSheet()">Ёпиш</button>`)}}
 
 /* ================= Асосий ================= */
-function render(){const T={today:'Бугун',log:'Журнал',stats:'Таҳлил',set:'Созлама'};$('#ttl').textContent=T[UI.tab];$('#hdate').textContent=dLong(Date.now());
+function render(){TDC={};const T={today:'Бугун',log:'Журнал',stats:'Таҳлил',set:'Созлама'};$('#ttl').textContent=T[UI.tab];$('#hdate').textContent=dLong(Date.now());
   document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===UI.tab));
   try{$('#main').innerHTML=({today:vToday,log:vLog,stats:vStats,set:vSet})[UI.tab]()}catch(e){console.error(e);$('#main').innerHTML=`<div class="alert bad">Хато: ${esc(e.message)}</div>`}}
 function tab(t){UI.tab=t;if(t==='stats'&&UI.sm==='day')UI.sa=Date.now();render();scrollTo(0,0)}

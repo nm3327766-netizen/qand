@@ -1,6 +1,6 @@
-const CACHE = 'dori-v1';
+const CACHE = 'qand-v2';
 const FILES = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
-// Шу илованинг манзили (масалан .../dori/). Сайтдаги бошқа иловалар (Қанд назорати ва б.) билан аралашмаслик учун
+// Шу илованинг манзили (.../qand/). Сайтдаги бошқа иловалар («Дори вақти» ва б.) билан аралашмаслик учун
 const SCOPE = self.registration.scope;
 
 self.addEventListener('install', e => {
@@ -9,9 +9,18 @@ self.addEventListener('install', e => {
 
 // Фақат шу илованинг эски кэшлари ўчирилади — бошқа иловаларникига тегилмайди
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys()
-    .then(ks => Promise.all(ks.filter(k => k.startsWith('dori-') && k !== CACHE).map(k => caches.delete(k))))
-    .then(() => self.clients.claim()));
+  e.waitUntil((async () => {
+    const ks = await caches.keys();
+    await Promise.all(ks.filter(k => k.startsWith('qand-') && k !== CACHE).map(k => caches.delete(k)));
+    // Олдин бу ерга адашиб «Дори вақти» файли юкланган эди — у шу илова нусхаларини 'dori-v1' кэшига ёзган.
+    // Ўша кэшдан фақат шу илованинг (qand) нусхалари ўчирилади, «Дори вақти»никига тегилмайди.
+    if (ks.includes('dori-v1')) {
+      const c = await caches.open('dori-v1');
+      const reqs = await c.keys();
+      await Promise.all(reqs.filter(r => r.url.startsWith(SCOPE)).map(r => c.delete(r)));
+    }
+    await self.clients.claim();
+  })());
 });
 
 // Аввал интернетдан, бўлмаса кэшдан (янгиланишлар тез келиши учун)
@@ -29,21 +38,19 @@ self.addEventListener('fetch', e => {
   );
 });
 
-// Билдиришнома босилганда — фақат «Дори вақти» ойнаси очилади
+// Эслатма босилганда — фақат «Қанд назорати» ойнаси очилади ва керакли ўлчов ойнаси чиқади
 self.addEventListener('notificationclick', e => {
   const n = e.notification;
-  const data = n.data || {};
-  const act = e.action || 'open';
+  const k = (n.data && n.data.k) || '';
   n.close();
   e.waitUntil((async () => {
     const all = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     const cs = all.filter(c => c.url.startsWith(SCOPE));
     if (cs.length) {
-      cs[0].postMessage({ type: act, date: data.date, key: data.key });
+      cs[0].postMessage({ type: 'qand-open', k });
       try { await cs[0].focus(); } catch (_) {}
       return;
     }
-    const url = SCOPE + '?act=' + act + '&date=' + encodeURIComponent(data.date || '') + '&key=' + encodeURIComponent(data.key || '');
-    return self.clients.openWindow(url);
+    return self.clients.openWindow(SCOPE + '?k=' + encodeURIComponent(k));
   })());
 });
